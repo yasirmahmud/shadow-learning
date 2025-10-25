@@ -11,23 +11,27 @@ export const el = (tag, attrs={}, ...children) => {
 };
 export const storageKey = (courseId) => `answers:${courseId}`;
 
-// ====== SAVE TO GITHUB VIA VERCEL FUNCTION ======
-// Set your deployed Vercel base URL (no trailing slash), e.g. "https://your-app.vercel.app"
-export const VERCEL_BASE_URL = "https://shadow-learning-git-main-yasirmahmuds-projects.vercel.app";
+/**
+ * VERCEL_BASE_URL:
+ * - Leave as empty string "" to call your function on the SAME domain (recommended if the site is hosted on Vercel).
+ * - If your site is on GitHub Pages, set it to your Vercel deployment origin, e.g. "https://your-app.vercel.app".
+ */
+export const VERCEL_BASE_URL = ""; // e.g., "https://your-app.vercel.app"
 
 export async function saveViaVercel(payload){
-  if (!VERCEL_BASE_URL || VERCEL_BASE_URL.includes('YOUR-APP')) {
-    throw new Error('VERCEL_BASE_URL not configured. Edit assets/ui.js.');
-  }
-  const res = await fetch(VERCEL_BASE_URL + "/api/save-answers", {
+  const origin = VERCEL_BASE_URL || window.location.origin;
+  const url = origin.replace(/\/$/, "") + "/api/save-answers";
+  const sameOrigin = origin === window.location.origin;
+
+  const res = await fetch(url, {
     method: "POST",
-    mode: "cors",
+    mode: sameOrigin ? "same-origin" : "cors",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
   });
   if (!res.ok) {
-    const txt = await res.text();
-    throw new Error(txt || ('HTTP ' + res.status));
+    const txt = await res.text().catch(()=> "");
+    throw new Error(txt || ("HTTP " + res.status));
   }
   return await res.json();
 }

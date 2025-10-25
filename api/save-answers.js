@@ -1,29 +1,20 @@
-// /api/save-answers.js (Vercel Serverless Function)
-// Commits answers JSON into your GitHub repo using the REST API.
-// Required env vars in Vercel Project Settings -> Environment Variables:
-//   GITHUB_TOKEN (fine-grained PAT with contents:write to the target repo)
-//   REPO_OWNER   (e.g., "your-username")
-//   REPO_NAME    (repo that will store answers)
-//   REPO_BRANCH  (optional, default "main")
-//
-// CORS: allow requests from anywhere or set a specific origin below.
-
 export default async function handler(req, res) {
   const allowOrigin = process.env.CORS_ALLOW_ORIGIN || "*";
   res.setHeader("Access-Control-Allow-Origin", allowOrigin);
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Credentials", "false");
+  res.setHeader("Content-Type", "application/json");
 
-  if (req.method === "OPTIONS") {
-    return res.status(200).end();
-  }
-  if (req.method !== "POST") {
-    return res.status(405).send("Method not allowed");
-  }
+  if (req.method === "OPTIONS") return res.status(200).end();
+  if (req.method !== "POST") return res.status(405).send("Method not allowed");
 
   try {
-    const body = req.body || {};
-    if (!body.course || !body.answers) {
+    let body = req.body;
+    if (typeof body === "string") {
+      try { body = JSON.parse(body); } catch { body = {}; }
+    }
+    if (!body || !body.course || !body.answers) {
       return res.status(400).send("Invalid payload. Expect {course, savedAt?, answers}");
     }
 
@@ -56,12 +47,12 @@ export default async function handler(req, res) {
       })
     });
 
+    const text = await ghRes.text();
     if (!ghRes.ok) {
-      const txt = await ghRes.text();
-      return res.status(502).send(`GitHub error: ${txt}`);
+      return res.status(502).send(`GitHub error: ${text}`);
     }
-    const data = await ghRes.json();
-    return res.status(200).json({ ok: true, path, commit: data.commit?.sha });
+    const data = JSON.parse(text || "{}");
+    return res.status(200).send(JSON.stringify({ ok: true, path, commit: data.commit?.sha }));
   } catch (err) {
     return res.status(500).send(err?.message || "Unknown error");
   }
