@@ -25,7 +25,7 @@
   <section class="hero">
     <div class="container">
       <h2 class="hero-title">Explore Available Courses</h2>
-      <p class="hero-sub">Pick a course to get started. You’ll answer a quick question on the course page and can save your responses as <code>answers.json</code>.</p>
+      <p class="hero-sub">Pick a course to get started. Answer questions on the course page and export your <code>answers.json</code>.</p>
     </div>
   </section>
 
@@ -34,39 +34,25 @@
   </main>
 
   <footer class="site-footer">
-    <div class="container">
-      <small>© <span id="year"></span> University of Florida (style). Not an official UF site.</small>
-    </div>
+    <div class="container"><small>© <span id="year"></span> University of Florida (style). Not an official UF site.</small></div>
   </footer>
 
   <script type="module">
     import { qs, el } from './assets/ui.js';
     const grid = qs('#course-grid');
-    const year = qs('#year'); year.textContent = new Date().getFullYear();
-
-    async function loadCourses() {
-      try {
-        const res = await fetch('./data/courses.json', { cache: 'no-store' });
-        if (!res.ok) throw new Error('Failed to load courses.json: ' + res.status);
-        const courses = await res.json();
-        courses.forEach(c => {
-          const card = el('a', { class: 'card course-card', href: `./course.html?id=${encodeURIComponent(c.id)}` });
-          const img = el('img', { class: 'card-img', src: c.image, alt: `${c.title} cover` });
-          const body = el('div', { class: 'card-body' });
-          const title = el('h3', { class: 'card-title' }, c.title);
-          const desc = el('p', { class: 'card-text' }, c.description);
-          const btn = el('span', { class: 'btn btn-orange btn-sm' }, 'View course →');
-          body.append(title, desc, btn);
-          card.append(img, body);
-          grid.append(card);
-        });
-      } catch (e) {
-        console.error(e);
-        grid.innerHTML = '<div class="error">Could not load course list. Check data/courses.json path.</div>';
-      }
+    qs('#year').textContent = new Date().getFullYear();
+    async function loadCourses(){
+      const res = await fetch('./data/courses.json', { cache:'no-store' });
+      const courses = await res.json();
+      courses.forEach(c => {
+        const card = el('a', { class:'card', href:`./course.html?id=${encodeURIComponent(c.id)}` });
+        const img = el('img', { class:'card-img', src:c.image, alt:`${c.title} cover` });
+        const body = el('div', { class:'card-body' });
+        body.append(el('h3', { class:'card-title' }, c.title), el('p', { class:'card-text' }, c.description), el('span', { class:'btn btn-orange btn-sm' }, 'View course →'));
+        card.append(img, body); grid.append(card);
+      });
     }
-
-    loadCourses();
+    loadCourses().catch(console.error);
   </script>
 </body>
 </html>
