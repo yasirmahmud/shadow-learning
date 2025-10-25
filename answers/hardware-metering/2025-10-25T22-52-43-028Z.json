@@ -1,0 +1,92 @@
+{
+  "course": "hardware-metering",
+  "savedAt": "2025-10-25T22:52:43.028Z",
+  "responses": [
+    {
+      "key": "boolean_algebra_kmap",
+      "question": "How well do you know about Boolean algebra simplification and Karnaugh maps?",
+      "type": "radio",
+      "answer": "Moderate"
+    },
+    {
+      "key": "combinational_truth_tables",
+      "question": "How well do you know about designing combinational logic from truth tables and minimizing gate-level circuits?",
+      "type": "radio",
+      "answer": "Weak"
+    },
+    {
+      "key": "sequential_fsm",
+      "question": "How well do you know about sequential logic and FSMs (state diagrams, Mealy vs Moore)?",
+      "type": "radio",
+      "answer": "Zero"
+    },
+    {
+      "key": "sta_basics",
+      "question": "How well do you know about Static Timing Analysis concepts like setup time, hold time, and slack?",
+      "type": "radio",
+      "answer": "Moderate"
+    },
+    {
+      "key": "timing_reports_sdc",
+      "question": "How well do you know about reading timing reports and applying timing constraints (e.g., SDC)?",
+      "type": "radio",
+      "answer": "Moderate"
+    },
+    {
+      "key": "clocking_cdc",
+      "question": "How well do you know about clocking issues such as clock skew, jitter, and clock domain crossing/metastability?",
+      "type": "radio",
+      "answer": "Weak"
+    },
+    {
+      "key": "asic_vs_fpga_flow",
+      "question": "How well do you know about the ASIC vs FPGA design flow (synthesis, place-and-route, bitstream/tapeout, sign-off)?",
+      "type": "radio",
+      "answer": "Moderate"
+    },
+    {
+      "key": "supply_chain_security",
+      "question": "How well do you know about hardware supply-chain security threats like overbuilding, cloning, and recycling?",
+      "type": "radio",
+      "answer": "Moderate"
+    },
+    {
+      "key": "session_length_freeform",
+      "question": "How long do you want to take a session, without any break?",
+      "type": "text",
+      "answer": "10 seconds"
+    },
+    {
+      "key": "learning_method_freeform",
+      "question": "How do you want to understand the concept?",
+      "type": "text",
+      "answer": "Visually"
+    },
+    {
+      "key": "accessibility_needs",
+      "question": "Do you have any accessibility needs?",
+      "type": "text",
+      "answer": "No"
+    },
+    {
+      "key": "motivation",
+      "question": "Why do you want to understand the concept?",
+      "type": "radio",
+      "answer": "Research-work"
+    }
+  ],
+  "answers": {
+    "boolean_algebra_kmap": "Moderate",
+    "combinational_truth_tables": "Weak",
+    "sequential_fsm": "Zero",
+    "sta_basics": "Moderate",
+    "timing_reports_sdc": "Moderate",
+    "clocking_cdc": "Weak",
+    "asic_vs_fpga_flow": "Moderate",
+    "supply_chain_security": "Moderate",
+    "session_length_freeform": "10 seconds",
+    "learning_method_freeform": "Visually",
+    "accessibility_needs": "No",
+    "motivation": "Research-work"
+  }
+}
