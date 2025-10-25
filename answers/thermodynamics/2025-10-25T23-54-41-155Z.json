@@ -1,0 +1,62 @@
+{
+  "course": "thermodynamics",
+  "savedAt": "2025-10-25T23:54:41.155Z",
+  "responses": [
+    {
+      "question": "How well do you know about algebraic manipulation of equations (rearranging formulas, solving linear equations, proportional reasoning)?",
+      "answer": "Strong"
+    },
+    {
+      "question": "How well do you know about interpreting and analyzing graphs (reading slopes, areas, and trends)?",
+      "answer": "Moderate"
+    },
+    {
+      "question": "How well do you know about basic derivatives (rates of change, rules for polynomials/exponentials, chain/product rules)?",
+      "answer": "Strong"
+    },
+    {
+      "question": "How well do you know about basic integrals (areas under curves, definite integrals, simple u-substitution)?",
+      "answer": "Moderate"
+    },
+    {
+      "question": "How well do you know about exponentials and logarithms (ln, log10) and their properties?",
+      "answer": "Moderate"
+    },
+    {
+      "question": "How well do you know about SI units, unit conversions, and dimensional analysis?",
+      "answer": "Weak"
+    },
+    {
+      "question": "How well do you know about basic mechanics concepts: work, energy, power, and conservation of energy?",
+      "answer": "Moderate"
+    },
+    {
+      "question": "How well do you know about temperature, pressure, volume, density, and converting temperature scales (Celsius–Kelvin)?",
+      "answer": "Moderate"
+    },
+    {
+      "question": "How well do you know about the ideal gas law (PV = nRT), moles, and using gas constants?",
+      "answer": "Moderate"
+    },
+    {
+      "question": "How well do you operate a scientific calculator (scientific notation, exponents/logs, parentheses, memory functions)?",
+      "answer": "Moderate"
+    },
+    {
+      "question": "How long do you want to take a session without any break? (e.g., 25 min, 45 min)",
+      "answer": "2min"
+    },
+    {
+      "question": "How would you like to understand the concept? (e.g., visual explanations, worked examples, problem sets)",
+      "answer": "visual"
+    },
+    {
+      "question": "Do you have any accessibility needs?",
+      "answer": "hearing"
+    },
+    {
+      "question": "What best describes your learning context?",
+      "answer": "Research-work"
+    }
+  ]
+}
