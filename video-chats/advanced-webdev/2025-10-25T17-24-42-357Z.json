@@ -1,0 +1,27 @@
+{
+  "course": "advanced-webdev",
+  "savedAt": "2025-10-25T17:24:42.357Z",
+  "video_chat": {
+    "atSeconds": 138,
+    "videoId": "Kl9p5Y7fbbY",
+    "messages": [
+      {
+        "role": "assistant",
+        "content": "Do you have any questions about what you just watched?"
+      },
+      {
+        "role": "user",
+        "content": "bad day"
+      },
+      {
+        "role": "assistant",
+        "content": "Embedded YouTube",
+        "embedYouTubeId": "mEBCQidaNTQ"
+      },
+      {
+        "role": "user",
+        "content": "nice work"
+      }
+    ]
+  }
+}
