@@ -1,0 +1,14 @@
+[
+  {
+    "id": "intro-to-python",
+    "title": "Intro to Python",
+    "description": "Learn Python basics.",
+    "image": "./images/python.jpg"
+  },
+  {
+    "id": "advanced-webdev",
+    "title": "Advanced Web Development",
+    "description": "Modern frontend development.",
+    "image": "./images/webdev.jpg"
+  }
+]

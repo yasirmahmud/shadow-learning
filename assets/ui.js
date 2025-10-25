@@ -1,0 +1,2 @@
+export const qs=(s,r=document)=>r.querySelector(s);
+export const el=(tag,attrs={},...children)=>{const n=document.createElement(tag);Object.entries(attrs).forEach(([k,v])=>{if(k==='class')n.className=v;else n.setAttribute(k,v)});children.forEach(c=>n.append(c.nodeType?c:document.createTextNode(c)));return n;};

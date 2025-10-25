@@ -1,0 +1,18 @@
+[
+  {
+    "key": "first_q",
+    "type": "text",
+    "prompt": "Which frontend frameworks have you used recently?",
+    "placeholder": "React, Vue..."
+  },
+  {
+    "key": "perf",
+    "type": "radio",
+    "prompt": "Confidence in web performance?",
+    "options": [
+      "Low",
+      "Medium",
+      "High"
+    ]
+  }
+]

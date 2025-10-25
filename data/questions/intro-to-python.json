@@ -1,0 +1,19 @@
+[
+  {
+    "key": "goals",
+    "type": "text",
+    "prompt": "What are your goals for learning Python?",
+    "placeholder": "e.g., data analysis"
+  },
+  {
+    "key": "experience",
+    "type": "select",
+    "prompt": "Your current programming experience?",
+    "options": [
+      "None",
+      "Beginner",
+      "Intermediate",
+      "Advanced"
+    ]
+  }
+]

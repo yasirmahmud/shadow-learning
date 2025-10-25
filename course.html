@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Course</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./assets/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <div class="brand">
+        <div class="uf-block">UF</div>
+        <h1 id="course-title">Course</h1>
+      </div>
+      <nav class="site-nav">
+        <a href="./index.html" class="nav-link">Home</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <div id="course-meta" class="course-meta"></div>
+    <div class="panel">
+      <h2 class="panel-title">Questions</h2>
+      <form id="qa-form" class="qa-form"></form>
+      <div class="actions">
+        <button id="save-json" class="btn btn-orange" type="button">Save answers.json</button>
+        <button id="clear-answers" class="btn btn-ghost" type="button">Clear answers</button>
+      </div>
+      <p class="hint">Answers are autosaved in your browser for this course.</p>
+    </div>
+  </main>
+  <dialog id="intro-modal" class="modal">
+    <form method="dialog" class="modal-card">
+      <h3 id="intro-question" class="modal-title"></h3>
+      <textarea id="intro-answer" class="input" rows="4" placeholder="Type your answer..."></textarea>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" value="cancel">Skip</button>
+        <button class="btn btn-orange" value="ok">Save & Continue</button>
+      </div>
+    </form>
+  </dialog>
+  <footer class="site-footer"><div class="container"><small>© <span id="year"></span></small></div></footer>
+  <script type="module" src="./assets/ui.js"></script>
+</body>
+</html>
