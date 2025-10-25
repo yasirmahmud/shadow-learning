@@ -29,7 +29,7 @@
       <div id="alert" class="alert" hidden></div>
       <form id="qa-form" class="qa-form"></form>
       <div class="actions">
-        <button id="save-github" class="btn btn-orange" type="button">Save to GitHub</button>
+        <button id="save" class="btn btn-orange" type="button">Save</button>
         <button id="clear-answers" class="btn btn-ghost" type="button">Clear answers</button>
       </div>
       <p class="hint">Answers are autosaved locally. “Save to GitHub” commits them to your repo using the Vercel function.</p>
@@ -145,13 +145,23 @@
       return nodes.filter(n=>n.checked).map(n=>n.value);
     }
 
-    qs('#save-github').addEventListener('click', async ()=>{
+    const saveBtn = qs('#save');
+    saveBtn.addEventListener('click', async () => {
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving…';
       const payload = { course: courseId, savedAt: new Date().toISOString(), answers };
+
       try {
-        const res = await saveViaVercel(payload);
-        alert('Saved to GitHub: ' + res.path);
+        const res = await saveViaVercel(payload); // same function you already wired
+        // No pop-up — go straight to the video page
+        location.href = `./course-video.html?id=${encodeURIComponent(courseId)}`;
       } catch (e) {
-        alert('Failed to save: ' + e.message);
+        // Optional inline error UI (no alert)
+        const alertBox = qs('#alert');
+        alertBox.hidden = false;
+        alertBox.textContent = ('' + e.message).slice(0, 300);
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save';
       }
     });
 
