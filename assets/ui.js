@@ -10,28 +10,20 @@ export const el = (tag, attrs={}, ...children) => {
   return node;
 };
 export const storageKey = (courseId) => `answers:${courseId}`;
-
-/**
- * VERCEL_BASE_URL:
- * - Leave as empty string "" to call your function on the SAME domain (recommended if the site is hosted on Vercel).
- * - If your site is on GitHub Pages, set it to your Vercel deployment origin, e.g. "https://your-app.vercel.app".
- */
-export const VERCEL_BASE_URL = ""; // e.g., "https://your-app.vercel.app"
-
+export const VERCEL_BASE_URL = "";
 export async function saveViaVercel(payload){
   const origin = VERCEL_BASE_URL || window.location.origin;
-  const url = origin.replace(/\/$/, "") + "/api/save-answers";
+  const url = origin.replace(/\/$/, '') + '/api/save-answers';
   const sameOrigin = origin === window.location.origin;
-
   const res = await fetch(url, {
-    method: "POST",
-    mode: sameOrigin ? "same-origin" : "cors",
-    headers: { "Content-Type": "application/json" },
+    method: 'POST',
+    mode: sameOrigin ? 'same-origin' : 'cors',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
   });
   if (!res.ok) {
-    const txt = await res.text().catch(()=> "");
-    throw new Error(txt || ("HTTP " + res.status));
+    const txt = await res.text().catch(()=>'');
+    throw new Error(txt || ('HTTP '+res.status));
   }
   return await res.json();
 }

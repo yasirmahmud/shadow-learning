@@ -1,177 +1,52 @@
 <!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Course</title>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./assets/style.css" />
-</head>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Course</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./assets/style.css" /></head>
 <body>
-  <header class="site-header">
-    <div class="container">
-      <div class="brand">
-        <div class="uf-block">UF</div>
-        <h1 id="course-title">Course</h1>
-      </div>
-      <nav class="site-nav">
-        <a href="./index.html" class="nav-link">Home</a>
-      </nav>
-    </div>
-  </header>
-
-  <main class="container">
-    <div id="course-meta" class="course-meta"></div>
-
-    <div class="panel">
-      <h2 class="panel-title">Questions</h2>
-      <div id="alert" class="alert" hidden></div>
-      <form id="qa-form" class="qa-form"></form>
-      <div class="actions">
-        <button id="save" class="btn btn-orange" type="button">Save</button>
-        <button id="clear-answers" class="btn btn-ghost" type="button">Clear answers</button>
-      </div>
-      <p class="hint">Answers are autosaved locally. “Save to GitHub” commits them to your repo using the Vercel function.</p>
-    </div>
-  </main>
-
-  <footer class="site-footer">
-    <div class="container"><small>© <span id="year"></span></small></div>
-  </footer>
-
-  <script type="module">
-    import { qs, el, storageKey, saveViaVercel } from './assets/ui.js';
-
-    const params = new URLSearchParams(location.search);
-    const courseId = params.get('id');
-    qs('#year').textContent = new Date().getFullYear();
-
-    const meta = qs('#course-meta');
-    const titleEl = qs('#course-title');
-    const form = qs('#qa-form');
-    const alertBox = qs('#alert');
-
-    if (!courseId) { alert('Missing course id.'); location.href='./index.html'; }
-
-    let questions = [];
-    let answers = JSON.parse(localStorage.getItem(storageKey(courseId)) || '{}');
-
-    function showErr(msg){ console.error(msg); alertBox.hidden=false; alertBox.textContent = msg; }
-
-    async function loadCourse(){
-      try{
-        const courses = await (await fetch('./data/courses.json', { cache:'no-store' })).json();
-        const course = courses.find(c => c.id === courseId);
-        if(!course) throw new Error('Course not found: ' + courseId);
-
-        titleEl.textContent = course.title;
-        meta.innerHTML = `<h2 class="course-name">${course.title}</h2>
-          <p class="course-desc">${course.description}</p>`;
-
-        const qRes = await fetch(`./data/questions/${courseId}.json`, { cache:'no-store' });
-        if(!qRes.ok) throw new Error('Missing questions file for ' + courseId);
-        questions = await qRes.json();
-        renderForm();
-      }catch(e){ showErr(e.message); }
-    }
-
-    function renderForm(){
-      form.innerHTML='';
-      questions.forEach((q,i)=>{
-        const field = el('div', { class:'field' });
-        const label = el('label', { class:'label', for:`q_${i}` }, q.prompt);
-        let input;
-        if(q.type==='text' || !q.type){
-          input = el('textarea', { id:`q_${i}`, class:'input', rows:3, placeholder:q.placeholder||'Type your answer...' });
-        }else if(q.type==='select'){
-          input = el('select', { id:`q_${i}`, class:'input' });
-          (q.options||[]).forEach(opt=> input.append(el('option',{},opt)));
-        }else if(q.type==='radio'){
-          input = el('div', { id:`q_${i}`, class:'radios' });
-          (q.options||[]).forEach(opt=>{
-            const wrap = el('label', { class:'radio' });
-            const r = el('input',{ type:'radio', name:`q_${i}`, value:opt });
-            wrap.append(r, document.createTextNode(opt)); input.append(wrap);
-          });
-        }else if(q.type==='checkbox'){
-          input = el('div', { id:`q_${i}`, class:'checks' });
-          (q.options||[]).forEach(opt=>{
-            const wrap = el('label', { class:'check' });
-            const c = el('input',{ type:'checkbox', name:`q_${i}`, value:opt });
-            wrap.append(c, document.createTextNode(opt)); input.append(wrap);
-          });
-        }
-
-        const key = q.key || `q_${i}`;
-        const saved = answers[key];
-        if(saved !== undefined){
-          if(input.tagName==='TEXTAREA' || input.tagName==='SELECT'){
-            input.value = saved;
-          }else{
-            input.querySelectorAll('input').forEach(n=>{
-              if(Array.isArray(saved)) n.checked = saved.includes(n.value);
-              else n.checked = saved === n.value;
-            });
-          }
-        }
-
-        const persist = () => {
-          answers[key] = valueOf(input);
-          localStorage.setItem(storageKey(courseId), JSON.stringify(answers));
-        };
-        if(input.tagName==='TEXTAREA' || input.tagName==='SELECT'){
-          input.addEventListener('input', persist);
-          input.addEventListener('change', persist);
-        }else{
-          input.addEventListener('change', persist);
-          input.querySelectorAll('input').forEach(n=> n.addEventListener('change', persist));
-        }
-
-        field.append(label, input);
-        form.append(field);
-      });
-    }
-
-    function valueOf(input){
-      if(!input) return '';
-      if(input.tagName==='TEXTAREA' || input.tagName==='SELECT') return input.value;
-      const nodes = [...input.querySelectorAll('input')];
-      if(!nodes.length) return '';
-      if(nodes[0].type==='radio'){
-        const sel = nodes.find(n=>n.checked);
-        return sel ? sel.value : '';
-      }
-      return nodes.filter(n=>n.checked).map(n=>n.value);
-    }
-
-    const saveBtn = qs('#save');
-    saveBtn.addEventListener('click', async () => {
-      saveBtn.disabled = true;
-      saveBtn.textContent = 'Saving…';
-      const payload = { course: courseId, savedAt: new Date().toISOString(), answers };
-
-      try {
-        const res = await saveViaVercel(payload); // same function you already wired
-        // No pop-up — go straight to the video page
-        location.href = `./course-video.html?id=${encodeURIComponent(courseId)}`;
-      } catch (e) {
-        // Optional inline error UI (no alert)
-        const alertBox = qs('#alert');
-        alertBox.hidden = false;
-        alertBox.textContent = ('' + e.message).slice(0, 300);
-        saveBtn.disabled = false;
-        saveBtn.textContent = 'Save';
-      }
-    });
-
-    qs('#clear-answers').addEventListener('click', ()=>{
-      if(confirm('Clear saved answers for this course?')){
-        answers = {}; localStorage.removeItem(storageKey(courseId)); renderForm();
-      }
-    });
-
-    loadCourse();
-  </script>
-</body>
-</html>
+<header class="site-header"><div class="container"><div class="brand"><div class="uf-block">UF</div><h1 id="course-title">Course</h1></div>
+<nav class="site-nav"><a href="./index.html" class="nav-link">Home</a></nav></div></header>
+<main class="container">
+<div id="course-meta" class="course-meta"></div>
+<div class="panel"><h2 class="panel-title">Questions</h2><div id="alert" class="alert" hidden></div>
+<form id="qa-form" class="qa-form"></form>
+<div class="actions"><button id="save" class="btn btn-orange" type="button">Save</button>
+<button id="clear-answers" class="btn btn-ghost" type="button">Clear answers</button></div>
+<p class="hint">Answers are autosaved locally and saved to your repo when you click Save.</p></div>
+</main>
+<footer class="site-footer"><div class="container"><small>© <span id="year"></span></small></div></footer>
+<script type="module">
+import { qs, el, storageKey, saveViaVercel } from './assets/ui.js';
+const params = new URLSearchParams(location.search); const courseId = params.get('id');
+qs('#year').textContent = new Date().getFullYear();
+const meta = qs('#course-meta'); const titleEl = qs('#course-title'); const form = qs('#qa-form'); const alertBox = qs('#alert');
+if(!courseId){ location.href='./index.html'; }
+let questions = []; let answers = JSON.parse(localStorage.getItem(storageKey(courseId)) || '{}');
+function showErr(m){ console.error(m); alertBox.hidden=false; alertBox.textContent=m; }
+const courses = await (await fetch('./data/courses.json', { cache:'no-store' })).json();
+const course = courses.find(c=>c.id===courseId); if(!course){ showErr('Course not found'); }
+titleEl.textContent = course.title; meta.innerHTML = `<h2 class="course-name">${course.title}</h2><p class="course-desc">${course.description}</p>`;
+const qRes = await fetch(`./data/questions/${courseId}.json`, { cache:'no-store' }); questions = await qRes.json();
+function valueOf(input){ if(!input) return ''; if(input.tagName==='TEXTAREA'||input.tagName==='SELECT') return input.value;
+const nodes=[...input.querySelectorAll('input')]; if(!nodes.length) return ''; if(nodes[0].type==='radio'){ const sel=nodes.find(n=>n.checked); return sel?sel.value:''; }
+return nodes.filter(n=>n.checked).map(n=>n.value); }
+function render(){ form.innerHTML=''; questions.forEach((q,i)=>{ const field=el('div',{class:'field'}); const label=el('label',{class:'label',for:`q_${i}`},q.prompt); let input;
+if(q.type==='text'||!q.type){ input=el('textarea',{id:`q_${i}`,class:'input',rows:3,placeholder:q.placeholder||'Type your answer...'}); }
+else if(q.type==='select'){ input=el('select',{id:`q_${i}`,class:'input'}); (q.options||[]).forEach(opt=> input.append(el('option',{},opt))); }
+else if(q.type==='radio'){ input=el('div',{id:`q_${i}`,class:'radios'}); (q.options||[]).forEach(opt=>{ const wrap=el('label',{class:'radio'}); const r=el('input',{type:'radio',name:`q_${i}`,value:opt}); wrap.append(r,document.createTextNode(opt)); input.append(wrap); }); }
+else if(q.type==='checkbox'){ input=el('div',{id:`q_${i}`,class:'checks'}); (q.options||[]).forEach(opt=>{ const wrap=el('label',{class:'check'}); const c=el('input',{type:'checkbox',name:`q_${i}`,value:opt}); wrap.append(c,document.createTextNode(opt)); input.append(wrap); }); }
+const key=q.key||`q_${i}`; const saved=answers[key]; if(saved!==undefined){ if(input.tagName==='TEXTAREA'||input.tagName==='SELECT') input.value=saved; else input.querySelectorAll('input').forEach(n=>{ if(Array.isArray(saved)) n.checked=saved.includes(n.value); else n.checked=saved===n.value; }); }
+const persist=()=>{ answers[key]=valueOf(input); localStorage.setItem(storageKey(courseId), JSON.stringify(answers)); };
+if(input.tagName==='TEXTAREA'||input.tagName==='SELECT'){ input.addEventListener('input', persist); input.addEventListener('change', persist); }
+else { input.addEventListener('change', persist); input.querySelectorAll('input').forEach(n=> n.addEventListener('change', persist)); }
+field.append(label,input); form.append(field); }); }
+render();
+const saveBtn=qs('#save'); saveBtn.addEventListener('click', async ()=>{
+  saveBtn.disabled=true; saveBtn.textContent='Saving…'; const payload={course:courseId,savedAt:new Date().toISOString(),answers};
+  try{ await saveViaVercel(payload); location.href = `./course-video.html?id=${encodeURIComponent(courseId)}`; }
+  catch(e){ showErr((''+e.message).slice(0,300)); saveBtn.disabled=false; saveBtn.textContent='Save'; }
+});
+qs('#clear-answers').addEventListener('click', ()=>{ if(confirm('Clear saved answers for this course?')){ answers={}; localStorage.removeItem(storageKey(courseId)); render(); } });
+</script>
+</body></html>

@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Course Video</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./assets/style.css" />
+<style>.video-wrap{background:#000;border-radius:16px;overflow:hidden;box-shadow:0 10px 28px rgba(0,0,0,.2);margin:16px 0}.video-16x9{position:relative;padding-top:56.25%}.video-16x9>*{position:absolute;inset:0;width:100%;height:100%}.video-meta{color:#334155}</style>
+</head>
+<body>
+<header class="site-header"><div class="container"><div class="brand"><div class="uf-block">UF</div><h1 id="course-title">Course Video</h1></div>
+<nav class="site-nav"><a href="./index.html" class="nav-link">Home</a><a id="back-to-course" class="nav-link" href="#">Back to questions</a></nav></div></header>
+<main class="container"><div id="meta" class="panel"><h2 id="title" class="panel-title"></h2><p id="desc" class="video-meta"></p></div>
+<div class="video-wrap video-16x9" id="player"></div></main>
+<footer class="site-footer"><div class="container"><small>© <span id="year"></span></small></div></footer>
+<script type="module">
+import { qs } from './assets/ui.js';
+const params=new URLSearchParams(location.search); const id=params.get('id');
+qs('#year').textContent=new Date().getFullYear(); qs('#back-to-course').href=`./course.html?id=${encodeURIComponent(id)}`;
+const courses = await (await fetch('./data/courses.json',{cache:'no-store'})).json();
+const course = courses.find(c=>c.id===id); if(!course){ location.href='./index.html'; }
+qs('#course-title').textContent=course.title; qs('#title').textContent=course.title; qs('#desc').textContent=course.description||'';
+const p=qs('#player'); const v=course.video||{};
+if(v.type==='youtube' && v.id){ p.innerHTML=`<iframe src="https://www.youtube.com/embed/${encodeURIComponent(v.id)}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`; }
+else { p.innerHTML='<div style="color:white;display:flex;align-items:center;justify-content:center;height:100%;">No video configured for this course.</div>'; }
+</script>
+</body></html>

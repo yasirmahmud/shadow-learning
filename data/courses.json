@@ -2,11 +2,19 @@
   {
     "id": "intro-to-python",
     "title": "Intro to Python",
-    "description": "Start coding with Python. Variables, loops, and problem-solving."
+    "description": "Start coding with Python. Variables, loops, and problem-solving.",
+    "video": {
+      "type": "youtube",
+      "id": "zfo-Ytr_atM"
+    }
   },
   {
     "id": "advanced-webdev",
     "title": "Advanced Web Development",
-    "description": "Modern frontend techniques, performance, and accessibility."
+    "description": "Modern frontend techniques, performance, and accessibility.",
+    "video": {
+      "type": "youtube",
+      "id": "zfo-Ytr_atM"
+    }
   }
 ]
