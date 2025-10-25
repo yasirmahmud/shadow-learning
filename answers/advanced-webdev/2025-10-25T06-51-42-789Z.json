@@ -1,0 +1,12 @@
+{
+  "course": "advanced-webdev",
+  "savedAt": "2025-10-25T06:51:42.789Z",
+  "answers": {
+    "a11y": [
+      "Semantics",
+      "Keyboard",
+      "Color contrast"
+    ],
+    "perf": "High"
+  }
+}
