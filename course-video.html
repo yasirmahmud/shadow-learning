@@ -35,7 +35,7 @@ const { id: videoId, start } = parseYouTube(v.url); if(!videoId){ document.getEl
 // Load IFrame API
 await new Promise((resolve)=>{ const tag=document.createElement('script'); tag.src='https://www.youtube.com/iframe_api'; window.onYouTubeIframeAPIReady=()=>resolve(); document.head.appendChild(tag); });
 const overlay = qs('#overlay'); const chat = qs('#chat'); const thread = qs('#thread'); const msgInput = qs('#msg'); const compose = qs('#compose'); const exitBtn = qs('#exit-chat');
-let player; let lastTime=start||0; let started=false; let chatTrigger=false;
+let player; let lastTime=start||0; let started=false;
 function addMsg(role, content, opts={}){ const row=el('div',{class:`msg ${role}`}); const avatar=el('div',{class:'thumb'}, role==='ai'?'AI':'U'); const bubble=el('div',{class:'bubble'});
   if(opts.embedYouTubeId){ const i=el('iframe',{src:`https://www.youtube-nocookie.com/embed/${encodeURIComponent(opts.embedYouTubeId)}?rel=0&modestbranding=1`, allow:"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share", allowfullscreen:"", style:"width:100%;height:240px;border:0;border-radius:12px"}); bubble.append(el('div',{}, content||''), i); }
   else { bubble.textContent=content; }
@@ -43,22 +43,19 @@ function addMsg(role, content, opts={}){ const row=el('div',{class:`msg ${role}`
 function botPrompt(){ addMsg('ai','Do you have any questions about what you just watched?'); }
 window.playerStateChange = (e)=>{
   if(e.data===window.YT.PlayerState.PAUSED){
-    if(!chatTrigger) return;
     try{ lastTime=Math.floor(player.getCurrentTime()||0);}catch{}
     overlay.classList.add('show'); chat.hidden=false; if(!started){ botPrompt(); started=true; } msgInput.focus();
-    chatTrigger=false;
   } else if(e.data===window.YT.PlayerState.PLAYING){
     overlay.classList.remove('show');
   }
 };
 player = new window.YT.Player('player',{ videoId, playerVars:{ start, rel:0, modestbranding:1, controls:1 }, events:{ 'onReady':(e)=>{ if(start){ try{ e.target.seekTo(start,true);}catch{} } }, 'onStateChange':window.playerStateChange }});
-// SPACE to open chat + pause video (only when not typing)
+// SPACE to pause (document focus required)
 document.addEventListener('keydown',(e)=>{
   const tag=(e.target.tagName||'').toLowerCase();
   const typing = e.target.isContentEditable || tag==='input' || tag==='textarea' || tag==='select' || tag==='button';
   if((e.key===' ' || e.code==='Space' || e.key==='Spacebar') && !typing){
     e.preventDefault();
-    chatTrigger=true;
     try{ player.pauseVideo(); }catch{}
   }
 });
