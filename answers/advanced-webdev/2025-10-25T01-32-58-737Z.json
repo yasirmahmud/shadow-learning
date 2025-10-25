@@ -1,0 +1,14 @@
+{
+  "course": "advanced-webdev",
+  "savedAt": "2025-10-25T01:32:58.737Z",
+  "answers": {
+    "first_q": "fasdf",
+    "perf": "Low",
+    "a11y": [
+      "Semantics",
+      "Keyboard",
+      "Color contrast",
+      "ARIA"
+    ]
+  }
+}
