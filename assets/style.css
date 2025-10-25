@@ -3,7 +3,6 @@
 .site-header{background:linear-gradient(90deg,var(--gator-blue),#00146e);color:#fff}.site-header .container{max-width:1080px;margin:0 auto;padding:16px;display:flex;align-items:center;justify-content:space-between}
 .brand{display:flex;align-items:center;gap:12px}.uf-block{background:var(--gator-orange);color:#fff;font-weight:800;padding:6px 10px;border-radius:8px;letter-spacing:1px}
 .site-nav .nav-link{color:#e2e8f0;text-decoration:none;margin-left:16px}.site-nav .nav-link.active,.site-nav .nav-link:hover{color:#fff}
-.hero{background:radial-gradient(80% 120% at 0% 0%,rgba(250,70,22,.15),transparent 50%),radial-gradient(80% 120% at 100% 0%,rgba(0,33,165,.2),transparent 50%);border-bottom:1px solid #e2e8f0}
 .container{max-width:1080px;margin:0 auto;padding:20px}
 .panel{background:var(--card);border:1px solid #e5e7eb;border-radius:var(--radius);padding:20px;box-shadow:0 8px 24px rgba(0,0,0,.06);margin:24px 0}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px;padding:20px 0 40px}
@@ -12,15 +11,21 @@
 .actions{display:flex;gap:10px;margin-top:10px}.btn{display:inline-flex;align-items:center;justify-content:center;padding:10px 14px;border-radius:12px;border:1px solid transparent;font-weight:600;cursor:pointer;text-decoration:none}
 .btn-orange{background:var(--gator-orange);color:#fff}.btn-ghost{background:#fff;border-color:#e2e8f0;color:var(--ink)}.btn-sm{font-size:14px;padding:8px 12px}
 .input{width:100%;padding:12px 14px;border:1px solid #cbd5e1;border-radius:12px;background:#fff;color:var(--ink);outline:none}.input:focus{border-color:var(--gator-orange);box-shadow:0 0 0 4px var(--ring)}
-.course-name{margin:0}.course-desc{margin:.25rem 0 0;color:var(--ink-2)}
-.alert{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;padding:10px 12px;border-radius:12px;margin-bottom:12px}
 .site-footer{border-top:1px solid #e2e8f0;margin-top:20px}
-/* YouTube wrapper */
+/* YT player & overlay */
 .yt-wrap{background:#000;border-radius:16px;overflow:hidden;box-shadow:0 10px 28px rgba(0,0,0,.2);margin:16px 0;position:relative}
 .yt-16x9{position:relative;padding-top:56.25%}.yt-16x9>iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
-/* Bottom question bar */
-.qbar{position:absolute;left:0;right:0;bottom:0;display:none;background:rgba(255,255,255,.96);border-top:1px solid #e5e7eb;padding:10px 12px}
-.qbar.show{display:flex;gap:8px;align-items:center}
-.qbar .prompt{font-weight:600;margin-right:8px}
-.qbar .tiny{font-size:12px;color:#64748b;margin-left:auto}
-.qbar .ask{flex:1} .qbar .ask input{width:100%} .saved{font-size:12px;color:#16a34a;margin-left:8px}
+.overlay{position:absolute;inset:0;background:rgba(0,0,0,.65);opacity:0;pointer-events:none;transition:opacity .15s ease}
+.overlay.show{opacity:1;pointer-events:auto}
+/* Chat UI */
+.chat{background:var(--card);border:1px solid #e5e7eb;border-radius:16px;padding:12px;margin-top:12px}
+.msg{display:flex;gap:10px;margin:10px 0}
+.msg .bubble{padding:10px 12px;border-radius:14px;max-width:80%}
+.msg.ai .bubble{background:#f1f5f9;border:1px solid #e2e8f0}
+.msg.user{justify-content:flex-end}
+.msg.user .bubble{background:#eaf1ff;border:1px solid #cfe0ff}
+.msg .thumb{width:28px;height:28px;border-radius:999px;background:#e2e8f0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+.msg.ai .thumb{background:#0021A5;color:#fff}
+.msg.user .thumb{background:#FA4616;color:#fff}
+.compose{display:flex;gap:8px;margin-top:10px}
+.compose input{flex:1} .compose button{min-width:80px}
