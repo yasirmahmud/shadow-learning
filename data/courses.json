@@ -2,13 +2,13 @@
   {
     "id": "intro-to-python",
     "title": "Intro to Python",
-    "description": "Learn Python basics.",
+    "description": "Start coding with Python. Variables, loops, and problem-solving.",
     "image": "./images/python.jpg"
   },
   {
     "id": "advanced-webdev",
     "title": "Advanced Web Development",
-    "description": "Modern frontend development.",
+    "description": "Modern frontend techniques, performance, and accessibility.",
     "image": "./images/webdev.jpg"
   }
 ]

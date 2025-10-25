@@ -3,16 +3,27 @@
     "key": "first_q",
     "type": "text",
     "prompt": "Which frontend frameworks have you used recently?",
-    "placeholder": "React, Vue..."
+    "placeholder": "React, Vue, Svelte..."
   },
   {
     "key": "perf",
     "type": "radio",
-    "prompt": "Confidence in web performance?",
+    "prompt": "How confident are you with web performance?",
     "options": [
       "Low",
       "Medium",
       "High"
+    ]
+  },
+  {
+    "key": "a11y",
+    "type": "checkbox",
+    "prompt": "Accessibility areas you want to improve:",
+    "options": [
+      "Semantics",
+      "Keyboard",
+      "Color contrast",
+      "ARIA"
     ]
   }
 ]

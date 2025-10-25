@@ -43,22 +43,30 @@
     import { qs, el } from './assets/ui.js';
     const grid = qs('#course-grid');
     const year = qs('#year'); year.textContent = new Date().getFullYear();
+
     async function loadCourses() {
-      const res = await fetch('./data/courses.json', { cache: 'no-store' });
-      const courses = await res.json();
-      courses.forEach(c => {
-        const card = el('a', { class: 'card course-card', href: `./course.html?id=${encodeURIComponent(c.id)}` });
-        const img = el('img', { class: 'card-img', src: c.image, alt: `${c.title} cover` });
-        const body = el('div', { class: 'card-body' });
-        const title = el('h3', { class: 'card-title' }, c.title);
-        const desc = el('p', { class: 'card-text' }, c.description);
-        const btn = el('span', { class: 'btn btn-orange btn-sm' }, 'View course →');
-        body.append(title, desc, btn);
-        card.append(img, body);
-        grid.append(card);
-      });
+      try {
+        const res = await fetch('./data/courses.json', { cache: 'no-store' });
+        if (!res.ok) throw new Error('Failed to load courses.json: ' + res.status);
+        const courses = await res.json();
+        courses.forEach(c => {
+          const card = el('a', { class: 'card course-card', href: `./course.html?id=${encodeURIComponent(c.id)}` });
+          const img = el('img', { class: 'card-img', src: c.image, alt: `${c.title} cover` });
+          const body = el('div', { class: 'card-body' });
+          const title = el('h3', { class: 'card-title' }, c.title);
+          const desc = el('p', { class: 'card-text' }, c.description);
+          const btn = el('span', { class: 'btn btn-orange btn-sm' }, 'View course →');
+          body.append(title, desc, btn);
+          card.append(img, body);
+          grid.append(card);
+        });
+      } catch (e) {
+        console.error(e);
+        grid.innerHTML = '<div class="error">Could not load course list. Check data/courses.json path.</div>';
+      }
     }
-    loadCourses().catch(console.error);
+
+    loadCourses();
   </script>
 </body>
 </html>

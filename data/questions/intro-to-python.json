@@ -3,7 +3,7 @@
     "key": "goals",
     "type": "text",
     "prompt": "What are your goals for learning Python?",
-    "placeholder": "e.g., data analysis"
+    "placeholder": "e.g., data analysis, automation..."
   },
   {
     "key": "experience",
@@ -14,6 +14,17 @@
       "Beginner",
       "Intermediate",
       "Advanced"
+    ]
+  },
+  {
+    "key": "interests",
+    "type": "checkbox",
+    "prompt": "What topics interest you?",
+    "options": [
+      "Data",
+      "Web",
+      "Automation",
+      "AI/ML"
     ]
   }
 ]
