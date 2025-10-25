@@ -1,0 +1,32 @@
+{
+  "course": "hardware-metering",
+  "savedAt": "2025-10-25T18:22:24.683Z",
+  "answers": {
+    "boolean_algebra": "Moderate",
+    "learning_style": [
+      "Visual explanations with diagrams",
+      "Text-based notes and readings",
+      "Hands-on labs/projects",
+      "Problem-solving with worked examples and quizzes"
+    ],
+    "combinational_design": "Zero",
+    "sequential_logic": "Weak",
+    "timing_diagrams": "Moderate",
+    "static_timing": "Weak",
+    "asic_flow": "Zero",
+    "clocking_cdc": "Strong",
+    "supply_chain_threats": "Zero",
+    "session_length": "120+ minutes",
+    "motivation": "Self-interest",
+    "boolean_algebra_kmap": "Weak",
+    "combinational_truth_tables": "Moderate",
+    "supply_chain_security": "Weak",
+    "asic_vs_fpga_flow": "Moderate",
+    "timing_reports_sdc": "Moderate",
+    "sta_basics": "Weak",
+    "sequential_fsm": "Moderate",
+    "session_length_freeform": "5 minutes",
+    "learning_method_freeform": "Visual explanation",
+    "accessibility_needs": "hearing issue"
+  }
+}
