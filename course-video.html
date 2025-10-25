@@ -1,14 +1,22 @@
 <!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Course Video</title>
-<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./assets/style.css"/></head>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Course Video</title>
+  <link rel="stylesheet" href="./assets/style.css"/>
+</head>
 <body>
-<header class="site-header"><div class="container"><div class="brand"><div class="uf-block">UF</div><h1 id="course-title">Course Video</h1></div><nav class="site-nav"><a href="./index.html" class="nav-link">Home</a><a id="back-to-course" class="nav-link" href="#">Back to questions</a></nav></div></header>
+<header class="site-header">
+  <div class="container">
+    <div class="brand"><div class="uf-block">UF</div><h1>Course Video</h1></div>
+    <nav class="site-nav"><a href="./index.html" class="nav-link">Home</a></nav>
+  </div>
+</header>
 <main class="container">
-  <div id="meta" class="panel"><h2 id="title" class="panel-title"></h2><p id="desc" class="video-meta"></p></div>
-  <div id="wrap" class="yt-wrap yt-16x9"><div id="player"></div><div id="overlay" class="overlay" aria-hidden="true"></div></div>
+  <div id="wrap" class="yt-wrap yt-16x9">
+    <div id="player"></div>
+  </div>
   <section id="chat" class="chat" hidden>
     <div class="chat-header">
       <strong>Discussion</strong>
@@ -21,51 +29,53 @@
     </form>
   </section>
 </main>
-<footer class="site-footer"><div class="container"><small>© <span id="year"></span></small></div></footer>
 <script type="module">
-import { qs, el, saveViaVercel } from './assets/ui.js';
-const params = new URLSearchParams(location.search); const courseId = params.get('id');
-qs('#year').textContent = new Date().getFullYear(); qs('#back-to-course').href = `./course.html?id=${encodeURIComponent(courseId)}`;
-const courses = await (await fetch('./data/courses.json',{cache:'no-store'})).json();
-const course = courses.find(c=>c.id===courseId); if(!course){ location.href='./index.html'; }
-qs('#course-title').textContent = course.title; qs('#title').textContent = course.title; qs('#desc').textContent = course.description || '';
-function parseYouTube(url){try{const u=new URL(url);let vid='';let start=0;if(u.hostname.includes('youtu.be')){vid=u.pathname.replace(/^\//,'');const t=u.searchParams.get('t');if(t)start=parseInt(t,10)||0;}else if(u.hostname.includes('youtube.com')){vid=u.searchParams.get('v')||'';const t=u.searchParams.get('t');if(t)start=parseInt(t,10)||0;}return {id:vid,start};}catch{return{id:'',start:0}}}
-const v = course.video || {}; if(!(v.type==='youtube' && v.url)){ document.getElementById('wrap').innerHTML='<div style="color:white;padding:24px;">No YouTube URL set.</div>'; throw new Error('No YouTube URL'); }
-const { id: videoId, start } = parseYouTube(v.url); if(!videoId){ document.getElementById('wrap').innerHTML='<div style="color:white;padding:24px;">Invalid YouTube URL.</div>'; throw new Error('Invalid URL'); }
-// Load IFrame API
-await new Promise((resolve)=>{ const tag=document.createElement('script'); tag.src='https://www.youtube.com/iframe_api'; window.onYouTubeIframeAPIReady=()=>resolve(); document.head.appendChild(tag); });
-const overlay = qs('#overlay'); const chat = qs('#chat'); const thread = qs('#thread'); const msgInput = qs('#msg'); const compose = qs('#compose'); const exitBtn = qs('#exit-chat');
-let player; let lastTime=start||0; let started=false;
-function addMsg(role, content, opts={}){ const row=el('div',{class:`msg ${role}`}); const avatar=el('div',{class:'thumb'}, role==='ai'?'AI':'U'); const bubble=el('div',{class:'bubble'});
-  if(opts.embedYouTubeId){ const i=el('iframe',{src:`https://www.youtube-nocookie.com/embed/${encodeURIComponent(opts.embedYouTubeId)}?rel=0&modestbranding=1`, allow:"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share", allowfullscreen:"", style:"width:100%;height:240px;border:0;border-radius:12px"}); bubble.append(el('div',{}, content||''), i); }
-  else { bubble.textContent=content; }
-  row.append(avatar,bubble); thread.append(row); thread.scrollTop=thread.scrollHeight; }
-function botPrompt(){ addMsg('ai','Do you have any questions about what you just watched?'); }
-window.playerStateChange = (e)=>{
-  if(e.data===window.YT.PlayerState.PAUSED){
-    try{ lastTime=Math.floor(player.getCurrentTime()||0);}catch{}
-    overlay.classList.add('show'); chat.hidden=false; if(!started){ botPrompt(); started=true; } msgInput.focus();
-  } else if(e.data===window.YT.PlayerState.PLAYING){
-    overlay.classList.remove('show');
-  }
-};
-player = new window.YT.Player('player',{ videoId, playerVars:{ start, rel:0, modestbranding:1, controls:1 }, events:{ 'onReady':(e)=>{ if(start){ try{ e.target.seekTo(start,true);}catch{} } }, 'onStateChange':window.playerStateChange }});
-// SPACE to pause (document focus required)
-document.addEventListener('keydown',(e)=>{
-  const tag=(e.target.tagName||'').toLowerCase();
-  const typing = e.target.isContentEditable || tag==='input' || tag==='textarea' || tag==='select' || tag==='button';
-  if((e.key===' ' || e.code==='Space' || e.key==='Spacebar') && !typing){
-    e.preventDefault();
-    try{ player.pauseVideo(); }catch{}
+import { qs, el, saveViaVercel, askLaptop } from './assets/ui.js';
+
+const params = new URLSearchParams(location.search);
+const courseId = params.get('id');
+let player, lastTime = 0;
+
+function addMsg(role, text) {
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+  div.innerHTML = `<div class="bubble">${text}</div>`;
+  qs('#thread').append(div);
+  qs('#thread').scrollTop = qs('#thread').scrollHeight;
+}
+
+function collectTranscript() {
+  return [...document.querySelectorAll('.msg')].map(m => ({
+    role: m.classList.contains('ai') ? 'assistant' : 'user',
+    content: m.textContent.trim()
+  }));
+}
+
+const compose = qs('#compose');
+const msgInput = qs('#msg');
+
+compose.addEventListener('submit', async ev => {
+  ev.preventDefault();
+  const text = msgInput.value.trim();
+  if (!text) return;
+  addMsg('user', text);
+  msgInput.value = '';
+
+  try {
+    const response = await askLaptop({
+      courseId,
+      atSeconds: lastTime,
+      messages: collectTranscript().map(m => ({
+        role: m.role === 'assistant' ? 'assistant' : 'user',
+        content: m.content
+      }))
+    });
+    addMsg('ai', response.reply || 'No response.');
+  } catch (err) {
+    console.error(err);
+    addMsg('ai', 'The assistant is unavailable right now. Please try again later.');
   }
 });
-compose.addEventListener('submit', async (ev)=>{ ev.preventDefault(); const text=msgInput.value.trim(); if(!text) return; addMsg('user', text); msgInput.value='';
-  const payload={ course:courseId, savedAt:new Date().toISOString(), video_chat:{ atSeconds:lastTime, videoId, messages: collectTranscript() } };
-  try{ await saveViaVercel(payload); }catch(e){ console.error(e); }
-  addMsg('ai','Here is a related clip you might find useful:', { embedYouTubeId: 'mEBCQidaNTQ' });
-});
-function collectTranscript(){ const rows=[...thread.querySelectorAll('.msg')]; return rows.map(r=>{ const role=r.classList.contains('ai')?'assistant':'user'; const ifr=r.querySelector('iframe'); return { role, content: ifr ? 'Embedded YouTube' : r.querySelector('.bubble').textContent.trim(), embedYouTubeId: ifr ? (new URL(ifr.src)).pathname.split('/').pop().split('?')[0] : undefined }; }); }
-exitBtn.addEventListener('click', ()=>{ chat.hidden=true; overlay.classList.remove('show'); try{ player.playVideo(); }catch{} });
-document.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && !chat.hidden){ chat.hidden=true; overlay.classList.remove('show'); try{ player.playVideo(); }catch{} } });
 </script>
-</body></html>
+</body>
+</html>
