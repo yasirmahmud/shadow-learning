@@ -1,59 +1,120 @@
 <!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Course</title>
-<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./assets/style.css"/></head>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Course Questions</title>
+  <link rel="stylesheet" href="./assets/style.css"/>
+</head>
 <body>
-<header class="site-header"><div class="container"><div class="brand"><div class="uf-block">UF</div><h1 id="course-title">Course</h1></div><nav class="site-nav"><a href="./index.html" class="nav-link">Home</a></nav></div></header>
+<header class="site-header">
+  <div class="container">
+    <div class="brand"><div class="uf-block">UF</div><h1>Course Questionnaire</h1></div>
+    <nav class="site-nav"><a href="./index.html" class="nav-link">Home</a></nav>
+  </div>
+</header>
+
 <main class="container">
-  <div id="course-meta" class="panel"></div>
-  <div class="panel">
-    <h2 class="panel-title">Questions</h2>
+  <div id="question-list" class="question-list"></div>
+  <div class="actions">
+    <button id="save" class="btn btn-orange">Save</button>
     <div id="alert" class="alert" hidden></div>
-    <form id="qa-form" class="qa-form"></form>
-    <div class="actions"><button id="save" class="btn btn-orange" type="button">Save</button><button id="clear-answers" class="btn btn-ghost" type="button">Clear</button></div>
   </div>
 </main>
-<footer class="site-footer"><div class="container"><small>© <span id="year"></span></small></div></footer>
+
 <script type="module">
-import { qs, el, storageKey, saveViaVercel } from './assets/ui.js';
-qs('#year').textContent = new Date().getFullYear();
-const params = new URLSearchParams(location.search); const courseId = params.get('id');
-const meta=qs('#course-meta'), titleEl=qs('#course-title'), form=qs('#qa-form'), alertBox=qs('#alert');
-let answers = JSON.parse(localStorage.getItem(storageKey(courseId)) || '{}');
-function showErr(m){ console.error(m); alertBox.hidden=false; alertBox.textContent=m; }
-const courses = await (await fetch('./data/courses.json',{cache:'no-store'})).json();
-const course = courses.find(c=>c.id===courseId); if(!course){ showErr('Course not found'); }
-titleEl.textContent = course.title; meta.innerHTML = `<h2 class="course-name">${course.title}</h2><p class="course-desc">${course.description||''}</p>`;
-const questions = await (await fetch(`./data/questions/${courseId}.json`,{cache:'no-store'})).json();
-function valueOf(input){ if(!input) return ''; if(input.tagName==='TEXTAREA'||input.tagName==='SELECT') return input.value;
-  const nodes=[...input.querySelectorAll('input')]; if(!nodes.length) return '';
-  if(nodes[0].type==='radio'){ const sel=nodes.find(n=>n.checked); return sel?sel.value:''; }
-  return nodes.filter(n=>n.checked).map(n=>n.value);
+import { qs, el, saveViaVercel } from './assets/ui.js';
+
+const params = new URLSearchParams(location.search);
+const courseId = params.get('id');
+const alertBox = qs('#alert');
+
+let questions = [];
+
+// ---------- Load and render questions ----------
+async function loadQuestions() {
+  const res = await fetch(`./data/questions/${courseId}.json`, { cache: 'no-store' });
+  questions = await res.json();
+  const container = qs('#question-list');
+  container.innerHTML = '';
+
+  questions.forEach((q, i) => {
+    const fieldId = `q_${i}`;
+    const block = el('div', { class: 'question-block' });
+    const label = el('div', { class: 'question-text' }, q.prompt || q.Question);
+    block.append(label);
+
+    if (q.type === 'radio' || q.Type === 'MCQ') {
+      const opts = q.options || q['Answer Options'] || [];
+      const optWrap = el('div', { id: fieldId, class: 'radios' });
+      opts.forEach(opt => {
+        const lab = el('label', { class: 'answer-option' });
+        const input = el('input', { type: 'radio', name: fieldId, value: opt });
+        lab.append(input, ' ', opt);
+        optWrap.append(lab);
+      });
+      block.append(optWrap);
+    } else {
+      const input = el('textarea', { id: fieldId, rows: 2, class: 'input', placeholder: 'Your answer' });
+      block.append(input);
+    }
+
+    container.append(block);
+  });
 }
-function render(){ form.innerHTML=''; questions.forEach((q,i)=>{
-  const field=el('div',{class:'field'}); const label=el('label',{class:'label',for:`q_${i}`},q.prompt); let input;
-  if(q.type==='text'||!q.type){ input=el('textarea',{id:`q_${i}`,class:'input',rows:3,placeholder:q.placeholder||'Type your answer...'}); }
-  else if(q.type==='select'){ input=el('select',{id:`q_${i}`,class:'input'}); (q.options||[]).forEach(opt=> input.append(el('option',{},opt))); }
-  else if(q.type==='radio'){ input=el('div',{id:`q_${i}`,class:'radios'}); (q.options||[]).forEach(opt=>{ const wrap=el('label',{class:'radio'}); const r=el('input',{type:'radio',name:`q_${i}`,value:opt}); wrap.append(r,document.createTextNode(opt)); input.append(wrap); }); }
-  else if(q.type==='checkbox'){ input=el('div',{id:`q_${i}`,class:'checks'}); (q.options||[]).forEach(opt=>{ const wrap=el('label',{class:'check'}); const c=el('input',{type:'checkbox',name:`q_${i}`,value:opt}); wrap.append(c,document.createTextNode(opt)); input.append(wrap); }); }
-  const key=q.key||`q_${i}`; const saved=answers[key];
-  if(saved!==undefined){ if(input.tagName==='TEXTAREA'||input.tagName==='SELECT') input.value=saved;
-    else input.querySelectorAll('input').forEach(n=>{ if(Array.isArray(saved)) n.checked=saved.includes(n.value); else n.checked=saved===n.value; });
+
+// ---------- Helper to read value ----------
+function valueOf(input) {
+  if (!input) return '';
+  if (input.tagName === 'TEXTAREA') return input.value.trim();
+  const checked = input.querySelector('input:checked');
+  if (checked) return checked.value;
+  return '';
+}
+
+// ---------- Save ----------
+qs('#save').addEventListener('click', async () => {
+  const btn = qs('#save');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+  alertBox.hidden = true;
+
+  // Build responses with question + answer
+  const responses = questions.map((q, i) => {
+    const fieldId = `q_${i}`;
+    const input = document.getElementById(fieldId) || document.querySelector(`[name="${fieldId}"]`);
+    return {
+      key: q.key || `q_${i}`,
+      question: q.prompt || q.Question || '',
+      type: q.type || q.Type || 'text',
+      answer: valueOf(input)
+    };
+  });
+
+  // Optional compact shape
+  const answers = {};
+  responses.forEach(r => { answers[r.key] = r.answer; });
+
+  const payload = {
+    course: courseId,
+    savedAt: new Date().toISOString(),
+    responses,
+    answers
+  };
+
+  try {
+    await saveViaVercel(payload);
+    window.location.href = `./course-video.html?id=${encodeURIComponent(courseId)}`;
+  } catch (e) {
+    console.error(e);
+    alertBox.hidden = false;
+    alertBox.textContent = ('' + e.message).slice(0, 300);
+    btn.disabled = false;
+    btn.textContent = 'Save';
   }
-  const persist=()=>{ answers[key]=valueOf(input); localStorage.setItem(storageKey(courseId), JSON.stringify(answers)); };
-  if(input.tagName==='TEXTAREA'||input.tagName==='SELECT'){ input.addEventListener('input',persist); input.addEventListener('change',persist); }
-  else { input.addEventListener('change',persist); input.querySelectorAll('input').forEach(n=> n.addEventListener('change',persist)); }
-  field.append(label,input); form.append(field);
-}); }
-render();
-qs('#save').addEventListener('click', async ()=>{
-  const btn = qs('#save'); btn.disabled=true; btn.textContent='Saving…';
-  try { await saveViaVercel({ course:courseId, savedAt:new Date().toISOString(), answers });
-    location.href = `./course-video.html?id=${encodeURIComponent(courseId)}`;
-  } catch(e){ showErr((''+e.message).slice(0,300)); btn.disabled=false; btn.textContent='Save'; }
 });
-qs('#clear-answers').addEventListener('click', ()=>{ answers={}; localStorage.removeItem(storageKey(courseId)); render(); });
+
+loadQuestions();
 </script>
-</body></html>
+</body>
+</html>
