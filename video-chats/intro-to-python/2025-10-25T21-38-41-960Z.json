@@ -1,0 +1,26 @@
+{
+  "course": "intro-to-python",
+  "savedAt": "2025-10-25T21:38:41.960Z",
+  "video_chat": {
+    "atSeconds": 135,
+    "videoId": "Kl9p5Y7fbbY",
+    "messages": [
+      {
+        "role": "assistant",
+        "content": "Do you have any questions about what you just watched?"
+      },
+      {
+        "role": "user",
+        "content": "no"
+      },
+      {
+        "role": "assistant",
+        "content": "Alright! If you have any questions later or need further assistance with Python, feel free to ask. Happy coding!"
+      },
+      {
+        "role": "user",
+        "content": "yes"
+      }
+    ]
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "course": "advanced-webdev",
+  "savedAt": "2025-10-25T21:00:16.018Z",
+  "answers": {
+    "first_q": "hudamisa",
+    "perf": "Medium",
+    "a11y": [
+      "Semantics",
+      "Keyboard",
+      "Color contrast"
+    ]
+  }
+}

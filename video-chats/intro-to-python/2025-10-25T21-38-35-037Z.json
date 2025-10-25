@@ -1,0 +1,18 @@
+{
+  "course": "intro-to-python",
+  "savedAt": "2025-10-25T21:38:35.037Z",
+  "video_chat": {
+    "atSeconds": 135,
+    "videoId": "Kl9p5Y7fbbY",
+    "messages": [
+      {
+        "role": "assistant",
+        "content": "Do you have any questions about what you just watched?"
+      },
+      {
+        "role": "user",
+        "content": "no"
+      }
+    ]
+  }
+}

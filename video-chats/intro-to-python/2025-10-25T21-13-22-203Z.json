@@ -1,0 +1,34 @@
+{
+  "course": "intro-to-python",
+  "savedAt": "2025-10-25T21:13:22.203Z",
+  "video_chat": {
+    "atSeconds": 135,
+    "videoId": "Kl9p5Y7fbbY",
+    "messages": [
+      {
+        "role": "assistant",
+        "content": "Do you have any questions about what you just watched?"
+      },
+      {
+        "role": "user",
+        "content": "no"
+      },
+      {
+        "role": "assistant",
+        "content": "The assistant is unavailable right now. Please try again in a moment."
+      },
+      {
+        "role": "user",
+        "content": "why"
+      },
+      {
+        "role": "assistant",
+        "content": "The assistant is unavailable right now. Please try again in a moment."
+      },
+      {
+        "role": "user",
+        "content": "no"
+      }
+    ]
+  }
+}
