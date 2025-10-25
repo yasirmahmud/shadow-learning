@@ -4,8 +4,8 @@
     "title": "Intro to Python",
     "description": "Start coding with Python. Variables, loops, and problem-solving.",
     "video": {
-      "type": "mp4",
-      "src": "https://youtu.be/Kl9p5Y7fbbY?si=m3n_0cTSFX1AuoJ-&t=134"
+      "type": "youtube",
+      "url": "https://youtu.be/Kl9p5Y7fbbY?si=m3n_0cTSFX1AuoJ-&t=134"
     }
   },
   {
@@ -13,8 +13,8 @@
     "title": "Advanced Web Development",
     "description": "Modern frontend techniques, performance, and accessibility.",
     "video": {
-      "type": "mp4",
-      "src": "https://youtu.be/a5PwvIRrh9M?si=PjHS0oRkvlH7Wf2P&t=113"
+      "type": "youtube",
+      "url": "https://youtu.be/Kl9p5Y7fbbY?si=m3n_0cTSFX1AuoJ-&t=134"
     }
   }
 ]

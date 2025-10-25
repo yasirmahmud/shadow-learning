@@ -1,1 +1,118 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Course Video</title><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="./assets/style.css"/><style>.video-wrap{background:#000;border-radius:16px;overflow:hidden;box-shadow:0 10px 28px rgba(0,0,0,.2);margin:16px 0}.video-16x9{position:relative;padding-top:56.25%}.video-16x9 > video{position:absolute;inset:0;width:100%;height:100%}.video-meta{color:#334155}</style></head><body><header class="site-header"><div class="container"><div class="brand"><div class="uf-block">UF</div><h1 id="course-title">Course Video</h1></div><nav class="site-nav"><a href="./index.html" class="nav-link">Home</a><a id="back-to-course" class="nav-link" href="#">Back to questions</a></nav></div></header><main class="container"><div id="meta" class="panel"><h2 id="title" class="panel-title"></h2><p id="desc" class="video-meta"></p></div><div class="video-wrap video-16x9"><video id="player" controls playsinline preload="metadata"></video></div></main><footer class="site-footer"><div class="container"><small>© <span id="year"></span></small></div></footer><script type="module">import { qs } from './assets/ui.js';const params = new URLSearchParams(location.search);const id = params.get('id');qs('#year').textContent = new Date().getFullYear();qs('#back-to-course').href = `./course.html?id=${encodeURIComponent(id)}`;const courses = await (await fetch('./data/courses.json',{cache:'no-store'})).json();const course = courses.find(c=>c.id===id);if(!course){location.href='./index.html';}qs('#course-title').textContent = course.title;qs('#title').textContent = course.title;qs('#desc').textContent = course.description || '';const v = course.video || {};const videoEl = qs('#player');videoEl.innerHTML='';if (v.type === 'mp4' && v.src) {const source = document.createElement('source');source.src = v.src;source.type='video/mp4';videoEl.appendChild(source);} else if (v.type === 'hls' && v.src) {const source = document.createElement('source');source.src = v.src;source.type='application/vnd.apple.mpegurl';videoEl.appendChild(source);} else {videoEl.outerHTML = '<div class="video-wrap" style="color:white;display:flex;align-items:center;justify-content:center;height:240px;background:#111;border-radius:16px;">No MP4/HLS source configured for this course.</div>';}</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Course Video</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./assets/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <div class="brand"><div class="uf-block">UF</div><h1 id="course-title">Course Video</h1></div>
+      <nav class="site-nav">
+        <a href="./index.html" class="nav-link">Home</a>
+        <a id="back-to-course" class="nav-link" href="#">Back to questions</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <div id="meta" class="panel">
+      <h2 id="title" class="panel-title"></h2>
+      <p id="desc" class="video-meta"></p>
+    </div>
+
+    <div id="wrap" class="yt-wrap yt-16x9">
+      <div id="player"></div>
+      <div id="qbar" class="qbar">
+        <span class="prompt">Do you have any questions?</span>
+        <div class="ask"><input id="ask-input" class="input" type="text" placeholder="Type your question and press Enter"/></div>
+        <span id="saved" class="saved" style="display:none;">Saved ✓</span>
+        <span id="pos" class="tiny"></span>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer"><div class="container"><small>© <span id="year"></span></small></div></footer>
+
+  <script type="module">
+    import { qs, saveViaVercel } from './assets/ui.js';
+    const params = new URLSearchParams(location.search); const courseId = params.get('id');
+    qs('#year').textContent = new Date().getFullYear(); qs('#back-to-course').href = `./course.html?id=${encodeURIComponent(courseId)}`;
+
+    const res = await fetch('./data/courses.json',{cache:'no-store'});
+    const courses = await res.json();
+    const course = courses.find(c=>c.id===courseId);
+    if(!course){ location.href='./index.html'; }
+    qs('#course-title').textContent = course.title;
+    qs('#title').textContent = course.title;
+    qs('#desc').textContent = course.description || '';
+
+    function parseYouTube(url){
+      try{ const u = new URL(url);
+        let vid = ''; let startSec = 0;
+        if(u.hostname.includes('youtu.be')){ vid = u.pathname.replace(/^\//,''); const t=u.searchParams.get('t'); if(t) startSec=parseInt(t,10)||0; }
+        else if(u.hostname.includes('youtube.com')){ vid=u.searchParams.get('v')||''; const t=u.searchParams.get('t'); if(t) startSec=parseInt(t,10)||0; }
+        return { id: vid, start: startSec };
+      }catch{ return { id:'', start:0 }; }
+    }
+
+    const v = course.video || {};
+    if(!(v.type==='youtube' && v.url)){ document.getElementById('wrap').innerHTML='<div style="color:white;padding:24px;">No YouTube URL set.</div>'; throw new Error('No YouTube URL'); }
+    const { id: videoId, start } = parseYouTube(v.url);
+    if(!videoId){ document.getElementById('wrap').innerHTML='<div style="color:white;padding:24px;">Invalid YouTube URL.</div>'; throw new Error('Invalid URL'); }
+
+    // Inject YouTube IFrame API
+    await new Promise((resolve)=>{ const tag=document.createElement('script'); tag.src='https://www.youtube.com/iframe_api'; window.onYouTubeIframeAPIReady=()=>resolve(); document.head.appendChild(tag); });
+
+    let player; let lastTime= start || 0;
+    const qbar=qs('#qbar'); const ask=qs('#ask-input'); const saved=qs('#saved'); const pos=qs('#pos');
+
+    window.playerReady = ()=>{};
+    window.playerStateChange = (e)=>{
+      if(e.data===window.YT.PlayerState.PAUSED){
+        // Show bar and update timestamp
+        try{ lastTime = Math.floor(player.getCurrentTime()||0); }catch{}
+        pos.textContent = `at ${lastTime}s`;
+        qbar.classList.add('show');
+        ask.focus();
+      } else if(e.data===window.YT.PlayerState.PLAYING){
+        qbar.classList.remove('show');
+        saved.style.display='none';
+      }
+    };
+
+    player = new window.YT.Player('player', {
+      videoId,
+      playerVars: { start, rel:0, modestbranding:1 },
+      events: {
+        'onReady': (e)=>{ if(start){ try{ e.target.seekTo(start,true);}catch{} } },
+        'onStateChange': window.playerStateChange
+      }
+    });
+
+    // Handle Enter to save
+    ask.addEventListener('keydown', async (ev)=>{
+      if(ev.key==='Enter'){
+        ev.preventDefault();
+        const text = ask.value.trim();
+        if(!text) return;
+        const payload = {
+          course: courseId,
+          savedAt: new Date().toISOString(),
+          video_note: { text, atSeconds: lastTime, videoId }
+        };
+        try{
+          await saveViaVercel(payload);
+          ask.value='';
+          saved.style.display='inline';
+          setTimeout(()=> saved.style.display='none', 1500);
+        }catch(err){
+          console.error(err);
+          // Keep it silent per your preference; you could show inline error if desired
+        }
+      }
+    });
+  </script>
+</body>
+</html>
