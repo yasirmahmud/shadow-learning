@@ -1,73 +1,74 @@
 [
   {
-    "key": "boolean_algebra",
+    "key": "boolean_algebra_kmap",
     "type": "radio",
-    "prompt": "How well do you know about Boolean algebra laws and logic simplification (e.g., De Morgan’s, Karnaugh maps)?",
+    "prompt": "How well do you know about Boolean algebra simplification and Karnaugh maps?",
     "options": ["Strong", "Moderate", "Weak", "Zero"]
   },
   {
-    "key": "combinational_design",
+    "key": "combinational_truth_tables",
     "type": "radio",
-    "prompt": "How well do you know about designing combinational circuits (adders, multiplexers/demultiplexers, encoders/decoders)?",
+    "prompt": "How well do you know about designing combinational logic from truth tables and minimizing gate-level circuits?",
     "options": ["Strong", "Moderate", "Weak", "Zero"]
   },
   {
-    "key": "sequential_logic",
+    "key": "sequential_fsm",
     "type": "radio",
-    "prompt": "How well do you know about sequential logic and FSMs (Moore vs. Mealy, state encoding/minimization)?",
+    "prompt": "How well do you know about sequential logic and FSMs (state diagrams, Mealy vs Moore)?",
     "options": ["Strong", "Moderate", "Weak", "Zero"]
   },
   {
-    "key": "timing_diagrams",
+    "key": "sta_basics",
     "type": "radio",
-    "prompt": "How well do you know about timing diagrams and flip-flop timing (setup time, hold time, clock-to-Q)?",
+    "prompt": "How well do you know about Static Timing Analysis concepts like setup time, hold time, and slack?",
     "options": ["Strong", "Moderate", "Weak", "Zero"]
   },
   {
-    "key": "static_timing",
+    "key": "timing_reports_sdc",
     "type": "radio",
-    "prompt": "How well do you know about Static Timing Analysis concepts (critical path, slack, timing constraints/SDC)?",
-    "options": ["Strong", "Moderate", "Weak", "Zero"]
-  },
-  {
-    "key": "asic_flow",
-    "type": "radio",
-    "prompt": "How well do you know about the ASIC/FPGA implementation flow (synthesis, place-and-route, bitstream/GDS sign-off)?",
+    "prompt": "How well do you know about reading timing reports and applying timing constraints (e.g., SDC)?",
     "options": ["Strong", "Moderate", "Weak", "Zero"]
   },
   {
     "key": "clocking_cdc",
     "type": "radio",
-    "prompt": "How well do you know about clocking concepts and CDC (clock domain crossing) and metastability mitigation?",
+    "prompt": "How well do you know about clocking issues such as clock skew, jitter, and clock domain crossing/metastability?",
     "options": ["Strong", "Moderate", "Weak", "Zero"]
   },
   {
-    "key": "supply_chain_threats",
+    "key": "asic_vs_fpga_flow",
     "type": "radio",
-    "prompt": "How well do you know about hardware supply-chain threats (overbuilding, cloning, recycling, Trojan insertion)?",
+    "prompt": "How well do you know about the ASIC vs FPGA design flow (synthesis, place-and-route, bitstream/tapeout, sign-off)?",
     "options": ["Strong", "Moderate", "Weak", "Zero"]
   },
   {
-    "key": "session_length",
+    "key": "supply_chain_security",
     "type": "radio",
-    "prompt": "How long do you want to take a session without any break?",
-    "options": ["15–25 minutes", "30–45 minutes", "60–90 minutes", "120+ minutes"]
+    "prompt": "How well do you know about hardware supply-chain security threats like overbuilding, cloning, and recycling?",
+    "options": ["Strong", "Moderate", "Weak", "Zero"]
   },
   {
-    "key": "learning_style",
-    "type": "checkbox",
+    "key": "session_length_freeform",
+    "type": "text",
+    "prompt": "How long do you want to take a session, without any break?",
+    "placeholder": "e.g., 30–45 minutes"
+  },
+  {
+    "key": "learning_method_freeform",
+    "type": "text",
     "prompt": "How do you want to understand the concept?",
-    "options": [
-      "Visual explanations with diagrams",
-      "Text-based notes and readings",
-      "Hands-on labs/projects",
-      "Problem-solving with worked examples and quizzes"
-    ]
+    "placeholder": "e.g., visual explanations, hands-on labs, notes, worked examples"
+  },
+  {
+    "key": "accessibility_needs",
+    "type": "text",
+    "prompt": "Do you have any accessibility needs?",
+    "placeholder": "e.g., captions, transcripts, high-contrast visuals, keyboard navigation"
   },
   {
     "key": "motivation",
     "type": "radio",
-    "prompt": "Why do you want to learn this concept?",
+    "prompt": "Why do you want to understand the concept?",
     "options": ["Academic Course", "Research-work", "Self-interest"]
   }
 ]
