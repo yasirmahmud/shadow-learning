@@ -10,6 +10,7 @@ export const el = (tag, attrs={}, ...children) => {
   return node;
 };
 export const storageKey = (courseId) => `answers:${courseId}`;
+// Same-origin Vercel API by default
 export const VERCEL_BASE_URL = "";
 export async function saveViaVercel(payload){
   const origin = VERCEL_BASE_URL || window.location.origin;
