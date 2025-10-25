@@ -23,27 +23,109 @@
 
   <main class="container">
     <div id="course-meta" class="course-meta"></div>
+
     <div class="panel">
       <h2 class="panel-title">Questions</h2>
       <form id="qa-form" class="qa-form"></form>
       <div class="actions">
         <button id="save-json" class="btn btn-orange" type="button">Save answers.json</button>
-        <button id="clear-answers" class="btn btn-ghost" type="button">Clear answers</button>
       </div>
-      <p class="hint">Answers are autosaved in your browser for this course.</p>
     </div>
   </main>
-  <dialog id="intro-modal" class="modal">
-    <form method="dialog" class="modal-card">
-      <h3 id="intro-question" class="modal-title"></h3>
-      <textarea id="intro-answer" class="input" rows="4" placeholder="Type your answer..."></textarea>
-      <div class="modal-actions">
-        <button class="btn btn-ghost" value="cancel">Skip</button>
-        <button class="btn btn-orange" value="ok">Save & Continue</button>
-      </div>
-    </form>
-  </dialog>
-  <footer class="site-footer"><div class="container"><small>© <span id="year"></span></small></div></footer>
-  <script type="module" src="./assets/ui.js"></script>
+
+  <footer class="site-footer">
+    <div class="container">
+      <small>© <span id="year"></span></small>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { qs, el, toBlobDownload } from './assets/ui.js';
+
+    const params = new URLSearchParams(location.search);
+    const courseId = params.get('id');
+    const year = qs('#year'); 
+    year.textContent = new Date().getFullYear();
+
+    if (!courseId) {
+      alert('Missing course id. Returning to home.');
+      location.href = './index.html';
+    }
+
+    const titleEl = qs('#course-title');
+    const meta = qs('#course-meta');
+    const form = qs('#qa-form');
+
+    async function loadCourse() {
+      const courses = await (await fetch('./data/courses.json')).json();
+      const course = courses.find(c => c.id === courseId);
+      if (!course) {
+        alert('Course not found!');
+        location.href = './index.html';
+        return;
+      }
+
+      titleEl.textContent = course.title;
+      meta.innerHTML = `
+        <div class="course-head">
+          <img src="${course.image}" alt="${course.title}" class="course-cover" />
+          <div>
+            <h2 class="course-name">${course.title}</h2>
+            <p class="course-desc">${course.description}</p>
+          </div>
+        </div>
+      `;
+
+      const questions = await (await fetch(`./data/questions/${courseId}.json`)).json();
+      renderQuestions(questions);
+    }
+
+    function renderQuestions(questions) {
+      form.innerHTML = '';
+      questions.forEach((q, i) => {
+        const field = el('div', { class: 'field' });
+        const label = el('label', { class: 'label' }, q.prompt);
+        let input;
+
+        if (q.type === 'text') {
+          input = el('textarea', { class: 'input', rows: 3, placeholder: q.placeholder || '' });
+        } else if (q.type === 'select') {
+          input = el('select', { class: 'input' });
+          q.options.forEach(opt => input.append(el('option', {}, opt)));
+        } else if (q.type === 'radio') {
+          input = el('div', { class: 'radios' });
+          q.options.forEach(opt => {
+            const wrap = el('label', { class: 'radio' });
+            const r = el('input', { type: 'radio', name: `q_${i}`, value: opt });
+            wrap.append(r, document.createTextNode(opt));
+            input.append(wrap);
+          });
+        }
+
+        field.append(label, input);
+        form.append(field);
+      });
+    }
+
+    qs('#save-json').addEventListener('click', () => {
+      const answers = {};
+      form.querySelectorAll('.field').forEach((field, i) => {
+        const label = field.querySelector('label').innerText;
+        const input = field.querySelector('.input, textarea, select, .radios');
+        let value = '';
+        if (input.tagName === 'TEXTAREA' || input.tagName === 'SELECT') {
+          value = input.value;
+        } else if (input.classList.contains('radios')) {
+          const checked = input.querySelector('input:checked');
+          value = checked ? checked.value : '';
+        }
+        answers[`q${i+1}`] = { question: label, answer: value };
+      });
+
+      toBlobDownload(JSON.stringify(answers, null, 2), 'answers.json', 'application/json');
+    });
+
+    loadCourse().catch(console.error);
+  </script>
 </body>
 </html>
