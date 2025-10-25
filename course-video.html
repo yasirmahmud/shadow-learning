@@ -9,7 +9,17 @@
 <main class="container">
   <div id="meta" class="panel"><h2 id="title" class="panel-title"></h2><p id="desc" class="video-meta"></p></div>
   <div id="wrap" class="yt-wrap yt-16x9"><div id="player"></div><div id="overlay" class="overlay" aria-hidden="true"></div></div>
-  <section id="chat" class="chat" hidden><div id="thread"></div><form id="compose" class="compose"><input id="msg" class="input" type="text" placeholder="Type your question and press Enter" autocomplete="off"/><button class="btn btn-orange" type="submit">Send</button></form></section>
+  <section id="chat" class="chat" hidden>
+    <div class="chat-header">
+      <strong>Discussion</strong>
+      <button id="exit-chat" class="btn btn-ghost btn-sm" type="button">Exit Chat</button>
+    </div>
+    <div id="thread"></div>
+    <form id="compose" class="compose">
+      <input id="msg" class="input" type="text" placeholder="Type your question and press Enter" autocomplete="off"/>
+      <button class="btn btn-orange" type="submit">Send</button>
+    </form>
+  </section>
 </main>
 <footer class="site-footer"><div class="container"><small>© <span id="year"></span></small></div></footer>
 <script type="module">
@@ -24,7 +34,7 @@ const v = course.video || {}; if(!(v.type==='youtube' && v.url)){ document.getEl
 const { id: videoId, start } = parseYouTube(v.url); if(!videoId){ document.getElementById('wrap').innerHTML='<div style="color:white;padding:24px;">Invalid YouTube URL.</div>'; throw new Error('Invalid URL'); }
 // Load IFrame API
 await new Promise((resolve)=>{ const tag=document.createElement('script'); tag.src='https://www.youtube.com/iframe_api'; window.onYouTubeIframeAPIReady=()=>resolve(); document.head.appendChild(tag); });
-const overlay = qs('#overlay'); const chat = qs('#chat'); const thread = qs('#thread'); const msgInput = qs('#msg'); const compose = qs('#compose');
+const overlay = qs('#overlay'); const chat = qs('#chat'); const thread = qs('#thread'); const msgInput = qs('#msg'); const compose = qs('#compose'); const exitBtn = qs('#exit-chat');
 let player; let lastTime=start||0; let started=false;
 function addMsg(role, content, opts={}){ const row=el('div',{class:`msg ${role}`}); const avatar=el('div',{class:'thumb'}, role==='ai'?'AI':'U'); const bubble=el('div',{class:'bubble'});
   if(opts.embedYouTubeId){ const i=el('iframe',{src:`https://www.youtube-nocookie.com/embed/${encodeURIComponent(opts.embedYouTubeId)}?rel=0&modestbranding=1`, allow:"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share", allowfullscreen:"", style:"width:100%;height:240px;border:0;border-radius:12px"}); bubble.append(el('div',{}, content||''), i); }
@@ -39,5 +49,7 @@ compose.addEventListener('submit', async (ev)=>{ ev.preventDefault(); const text
   addMsg('ai','Here is a related clip you might find useful:', { embedYouTubeId: 'mEBCQidaNTQ' });
 });
 function collectTranscript(){ const rows=[...thread.querySelectorAll('.msg')]; return rows.map(r=>{ const role=r.classList.contains('ai')?'assistant':'user'; const ifr=r.querySelector('iframe'); return { role, content: ifr ? 'Embedded YouTube' : r.querySelector('.bubble').textContent.trim(), embedYouTubeId: ifr ? (new URL(ifr.src)).pathname.split('/').pop().split('?')[0] : undefined }; }); }
+exitBtn.addEventListener('click', ()=>{ chat.hidden=true; overlay.classList.remove('show'); try{ player.playVideo(); }catch{} });
+document.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && !chat.hidden){ chat.hidden=true; overlay.classList.remove('show'); try{ player.playVideo(); }catch{} } });
 </script>
 </body></html>

@@ -18,7 +18,8 @@
 .overlay{position:absolute;inset:0;background:rgba(0,0,0,.65);opacity:0;pointer-events:none;transition:opacity .15s ease}
 .overlay.show{opacity:1;pointer-events:auto}
 /* Chat UI */
-.chat{background:var(--card);border:1px solid #e5e7eb;border-radius:16px;padding:12px;margin-top:12px}
+.chat{background:var(--card);border:1px solid #e2e8f0;border-radius:16px;padding:12px;margin-top:12px}
+.chat-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
 .msg{display:flex;gap:10px;margin:10px 0}
 .msg .bubble{padding:10px 12px;border-radius:14px;max-width:80%}
 .msg.ai .bubble{background:#f1f5f9;border:1px solid #e2e8f0}
