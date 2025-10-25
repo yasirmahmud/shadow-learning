@@ -13,8 +13,7 @@ export const storageKey = (courseId) => `answers:${courseId}`;
 
 // ====== SAVE TO GITHUB VIA VERCEL FUNCTION ======
 // Set your deployed Vercel base URL (no trailing slash), e.g. "https://your-app.vercel.app"
-// export const VERCEL_BASE_URL = "https://shadow-learning-git-main-yasirmahmuds-projects.vercel.app";
-export const VERCEL_BASE_URL = "";
+export const VERCEL_BASE_URL = "https://shadow-learning-git-main-yasirmahmuds-projects.vercel.app";
 
 export async function saveViaVercel(payload){
   if (!VERCEL_BASE_URL || VERCEL_BASE_URL.includes('YOUR-APP')) {
