@@ -17,7 +17,6 @@
       </div>
       <nav class="site-nav">
         <a href="./index.html" class="nav-link active">Home</a>
-        <a href="#" class="nav-link">About</a>
       </nav>
     </div>
   </header>
@@ -25,7 +24,7 @@
   <section class="hero">
     <div class="container">
       <h2 class="hero-title">Explore Available Courses</h2>
-      <p class="hero-sub">Pick a course to get started. Answer questions on the course page and export your <code>answers.json</code>.</p>
+      <p class="hero-sub">Pick a course, answer the questions, and save your answers directly to GitHub via Vercel.</p>
     </div>
   </section>
 
@@ -45,11 +44,15 @@
       const res = await fetch('./data/courses.json', { cache:'no-store' });
       const courses = await res.json();
       courses.forEach(c => {
-        const card = el('a', { class:'card', href:`./course.html?id=${encodeURIComponent(c.id)}` });
-        const img = el('img', { class:'card-img', src:c.image, alt:`${c.title} cover` });
+        const card = el('a', { class:'card noimg', href:`./course.html?id=${encodeURIComponent(c.id)}` });
         const body = el('div', { class:'card-body' });
-        body.append(el('h3', { class:'card-title' }, c.title), el('p', { class:'card-text' }, c.description), el('span', { class:'btn btn-orange btn-sm' }, 'View course →'));
-        card.append(img, body); grid.append(card);
+        body.append(
+          el('h3', { class:'card-title' }, c.title),
+          el('p', { class:'card-text' }, c.description),
+          el('span', { class:'btn btn-orange btn-sm' }, 'Open →')
+        );
+        card.append(body);
+        grid.append(card);
       });
     }
     loadCourses().catch(console.error);

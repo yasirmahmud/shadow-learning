@@ -9,10 +9,25 @@ export const el = (tag, attrs={}, ...children) => {
   children.forEach(c => node.append(c?.nodeType ? c : document.createTextNode(c ?? '')));
   return node;
 };
-export const toBlobDownload = (text, filename, type='text/plain') => {
-  const blob = new Blob([text], { type });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 500);
-};
 export const storageKey = (courseId) => `answers:${courseId}`;
+
+// ====== SAVE TO GITHUB VIA VERCEL FUNCTION ======
+// Set your deployed Vercel base URL (no trailing slash), e.g. "https://your-app.vercel.app"
+export const VERCEL_BASE_URL = "https://shadow-learning-git-main-yasirmahmuds-projects.vercel.app";
+
+export async function saveViaVercel(payload){
+  if (!VERCEL_BASE_URL || VERCEL_BASE_URL.includes('YOUR-APP')) {
+    throw new Error('VERCEL_BASE_URL not configured. Edit assets/ui.js.');
+  }
+  const res = await fetch(VERCEL_BASE_URL + "/api/save-answers", {
+    method: "POST",
+    mode: "cors",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error(txt || ('HTTP ' + res.status));
+  }
+  return await res.json();
+}

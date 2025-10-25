@@ -2,13 +2,11 @@
   {
     "id": "intro-to-python",
     "title": "Intro to Python",
-    "description": "Start coding with Python. Variables, loops, and problem-solving.",
-    "image": "./images/python.jpg"
+    "description": "Start coding with Python. Variables, loops, and problem-solving."
   },
   {
     "id": "advanced-webdev",
     "title": "Advanced Web Development",
-    "description": "Modern frontend techniques, performance, and accessibility.",
-    "image": "./images/webdev.jpg"
+    "description": "Modern frontend techniques, performance, and accessibility."
   }
 ]

@@ -29,10 +29,10 @@
       <div id="alert" class="alert" hidden></div>
       <form id="qa-form" class="qa-form"></form>
       <div class="actions">
-        <button id="save-json" class="btn btn-orange" type="button">Save answers.json</button>
+        <button id="save-github" class="btn btn-orange" type="button">Save to GitHub</button>
         <button id="clear-answers" class="btn btn-ghost" type="button">Clear answers</button>
       </div>
-      <p class="hint">Answers are autosaved in your browser for this course.</p>
+      <p class="hint">Answers are autosaved locally. “Save to GitHub” commits them to your repo using the Vercel function.</p>
     </div>
   </main>
 
@@ -41,7 +41,7 @@
   </footer>
 
   <script type="module">
-    import { qs, el, toBlobDownload, storageKey } from './assets/ui.js';
+    import { qs, el, storageKey, saveViaVercel } from './assets/ui.js';
 
     const params = new URLSearchParams(location.search);
     const courseId = params.get('id');
@@ -66,7 +66,8 @@
         if(!course) throw new Error('Course not found: ' + courseId);
 
         titleEl.textContent = course.title;
-        meta.innerHTML = `<div class="course-head"><img src="${course.image}" alt="${course.title}" class="course-cover"/><div><h2 class="course-name">${course.title}</h2><p class="course-desc">${course.description}</p></div></div>`;
+        meta.innerHTML = `<h2 class="course-name">${course.title}</h2>
+          <p class="course-desc">${course.description}</p>`;
 
         const qRes = await fetch(`./data/questions/${courseId}.json`, { cache:'no-store' });
         if(!qRes.ok) throw new Error('Missing questions file for ' + courseId);
@@ -144,10 +145,16 @@
       return nodes.filter(n=>n.checked).map(n=>n.value);
     }
 
-    qs('#save-json').addEventListener('click', ()=>{
+    qs('#save-github').addEventListener('click', async ()=>{
       const payload = { course: courseId, savedAt: new Date().toISOString(), answers };
-      toBlobDownload(JSON.stringify(payload, null, 2), 'answers.json', 'application/json');
+      try {
+        const res = await saveViaVercel(payload);
+        alert('Saved to GitHub: ' + res.path);
+      } catch (e) {
+        alert('Failed to save: ' + e.message);
+      }
     });
+
     qs('#clear-answers').addEventListener('click', ()=>{
       if(confirm('Clear saved answers for this course?')){
         answers = {}; localStorage.removeItem(storageKey(courseId)); renderForm();
