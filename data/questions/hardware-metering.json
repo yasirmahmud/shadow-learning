@@ -1,0 +1,73 @@
+[
+  {
+    "key": "boolean_algebra",
+    "type": "radio",
+    "prompt": "How well do you know about Boolean algebra laws and logic simplification (e.g., De Morgan’s, Karnaugh maps)?",
+    "options": ["Strong", "Moderate", "Weak", "Zero"]
+  },
+  {
+    "key": "combinational_design",
+    "type": "radio",
+    "prompt": "How well do you know about designing combinational circuits (adders, multiplexers/demultiplexers, encoders/decoders)?",
+    "options": ["Strong", "Moderate", "Weak", "Zero"]
+  },
+  {
+    "key": "sequential_logic",
+    "type": "radio",
+    "prompt": "How well do you know about sequential logic and FSMs (Moore vs. Mealy, state encoding/minimization)?",
+    "options": ["Strong", "Moderate", "Weak", "Zero"]
+  },
+  {
+    "key": "timing_diagrams",
+    "type": "radio",
+    "prompt": "How well do you know about timing diagrams and flip-flop timing (setup time, hold time, clock-to-Q)?",
+    "options": ["Strong", "Moderate", "Weak", "Zero"]
+  },
+  {
+    "key": "static_timing",
+    "type": "radio",
+    "prompt": "How well do you know about Static Timing Analysis concepts (critical path, slack, timing constraints/SDC)?",
+    "options": ["Strong", "Moderate", "Weak", "Zero"]
+  },
+  {
+    "key": "asic_flow",
+    "type": "radio",
+    "prompt": "How well do you know about the ASIC/FPGA implementation flow (synthesis, place-and-route, bitstream/GDS sign-off)?",
+    "options": ["Strong", "Moderate", "Weak", "Zero"]
+  },
+  {
+    "key": "clocking_cdc",
+    "type": "radio",
+    "prompt": "How well do you know about clocking concepts and CDC (clock domain crossing) and metastability mitigation?",
+    "options": ["Strong", "Moderate", "Weak", "Zero"]
+  },
+  {
+    "key": "supply_chain_threats",
+    "type": "radio",
+    "prompt": "How well do you know about hardware supply-chain threats (overbuilding, cloning, recycling, Trojan insertion)?",
+    "options": ["Strong", "Moderate", "Weak", "Zero"]
+  },
+  {
+    "key": "session_length",
+    "type": "radio",
+    "prompt": "How long do you want to take a session without any break?",
+    "options": ["15–25 minutes", "30–45 minutes", "60–90 minutes", "120+ minutes"]
+  },
+  {
+    "key": "learning_style",
+    "type": "checkbox",
+    "prompt": "How do you want to understand the concept?",
+    "options": [
+      "Visual explanations with diagrams",
+      "Text-based notes and readings",
+      "Hands-on labs/projects",
+      "Problem-solving with worked examples and quizzes"
+    ]
+  },
+  {
+    "key": "motivation",
+    "type": "radio",
+    "prompt": "Why do you want to learn this concept?",
+    "options": ["Academic Course", "Research-work", "Self-interest"]
+  }
+]

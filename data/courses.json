@@ -1,8 +1,8 @@
 [
   {
-    "id": "intro-to-python",
-    "title": "Intro to Python",
-    "description": "Start coding with Python. Variables, loops, and problem-solving.",
+    "id": "hardware-metering",
+    "title": "Hardware Metering",
+    "description": "Understand concepts of secure hardware design and supply-chain trust.",
     "video": {
       "type": "youtube",
       "url": "https://youtu.be/Kl9p5Y7fbbY?si=m3n_0cTSFX1AuoJ-&t=134"
