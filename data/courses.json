@@ -1,6 +1,6 @@
 [
   {
-    "id": "Hardware Security",
+    "id": "intro-to-python",
     "title": "Intro to Python",
     "description": "Start coding with Python. Variables, loops, and problem-solving.",
     "video": {
@@ -9,7 +9,7 @@
     }
   },
   {
-    "id": "Advanced Hardware Security",
+    "id": "advanced-webdev",
     "title": "Advanced Web Development",
     "description": "Modern frontend techniques, performance, and accessibility.",
     "video": {
