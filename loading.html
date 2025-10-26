@@ -52,7 +52,7 @@
     // Poll backend until it's done running dummy.py
     async function waitForBackend() {
       try {
-        const res = await fetch("http://localhost:8787/api/check-status");
+        const res = await fetch("https://saunciest-unethereal-clora.ngrok-free.dev/api/check-status");
         const data = await res.json();
         if (data.ok && data.done) {
           window.location.href = `./course-video.html?id=${encodeURIComponent(courseId)}`;
