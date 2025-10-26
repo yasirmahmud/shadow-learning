@@ -107,7 +107,7 @@ qs('#save').addEventListener('click', async () => {
 
     const result = await res.json();
     console.log('✅ Saved locally:', result);
-    window.location.href = `./course-video.html?id=${encodeURIComponent(courseId)}`;
+    window.location.href = `./loading.html?id=${encodeURIComponent(courseId)}`;
 
   } catch (e) {
     console.error('❌ Error saving to local backend:', e);
