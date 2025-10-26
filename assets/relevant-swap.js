@@ -14,7 +14,6 @@ function parseYouTubeId(u) {
 
 // -------------------- Backend config (HTTPS for ngrok) --------------------
 let BACKEND_URL = 'https://saunciest-unethereal-clora.ngrok-free.dev';
-// let BACKEND_URL = 'http://localhost:8787'; // toggle for local dev
 
 const NGROK_SKIP = { 'ngrok-skip-browser-warning': 'true' };
 const NO_STORE = { cache: 'no-store' };
