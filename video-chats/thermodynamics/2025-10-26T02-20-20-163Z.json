@@ -1,0 +1,26 @@
+{
+  "course": "thermodynamics",
+  "savedAt": "2025-10-26T02:20:20.163Z",
+  "video_chat": {
+    "atSeconds": 6,
+    "videoId": "Kl9p5Y7fbbY",
+    "messages": [
+      {
+        "role": "assistant",
+        "content": "Do you have any questions about what you just watched?"
+      },
+      {
+        "role": "user",
+        "content": "hello"
+      },
+      {
+        "role": "assistant",
+        "content": "Hello! How can I assist you today? Do you have any questions about thermodynamics or anything else?"
+      },
+      {
+        "role": "user",
+        "content": "i dont understand"
+      }
+    ]
+  }
+}
