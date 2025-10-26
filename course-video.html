@@ -3,12 +3,76 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Course Video</title>
+  <title>Course Video - GatorMate</title>
   <link rel="stylesheet" href="./assets/style.css"/>
+  <style>
+    /* ===== HEADER (UF Blue) ===== */
+    .site-header {
+      background-color: #0021A5; /* UF Blue */
+      color: #fff;
+      padding: 2rem 0;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .site-logo {
+      width: 90px;
+      height: auto;
+      flex-shrink: 0;
+      border-radius: 0.5rem;
+      background: #fff;
+      padding: 0.5rem;
+    }
+    .site-titles {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start; /* titles on the right of logo, left-aligned text */
+      text-align: left;
+    }
+    .main-title {
+      font-size: 2.5rem;
+      font-weight: 800;
+      margin: 0;
+      background: linear-gradient(90deg, #ffffff, #f9a825); /* white → UF orange accent */
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .subtitle {
+      font-size: 1.2rem;
+      font-weight: 500;
+      font-style: italic;
+      color: #ffffff;
+      margin: 0.3rem 0 0.8rem;
+      letter-spacing: 0.5px;
+    }
+    .subheading {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #ffffff; /* page-specific title in white at the bottom */
+      margin: 0;
+    }
+    .site-nav {
+      text-align: center;
+      margin-top: 1rem;
+    }
+    .nav-link {
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+      margin: 0 1rem;
+    }
+    .nav-link:hover { text-decoration: underline; }
+  </style>
 </head>
 <body>
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js">
-  marked.setOptions({ mangle: false, headerIds: false });
+<!-- Load marked, then configure it (split into two tags so options actually apply) -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+  if (window.marked) marked.setOptions({ mangle: false, headerIds: false });
 </script>
 
 <header class="site-header">
@@ -16,14 +80,17 @@
     <div class="brand">
       <!-- replaced UF block with logo -->
       <img src="./images/logo.png" alt="Site Logo" class="site-logo"/>
-      <h1 id="course-title">Course Video</h1>
+      <div class="site-titles">
+        <h1 class="main-title">GatorMate</h1>
+        <p class="subtitle">Revolutionizing Education</p>
+        <h2 class="subheading" id="course-title">Course Video</h2>
+      </div>
     </div>
     <nav class="site-nav"><a href="./index.html" class="nav-link">Home</a></nav>
   </div>
 </header>
 
 <main class="container">
-
   <div id="wrap" class="yt-wrap yt-16x9">
     <div id="player"></div>
     <div id="overlay" class="overlay" aria-hidden="true"></div>
@@ -57,7 +124,7 @@ let videoInfo;
 try {
   const resp = await fetch(`${BACKEND_URL}/api/video-info`, {
     cache: 'no-store',
-    headers: { 'ngrok-skip-browser-warning': 'true' } // <— important fix
+    headers: { 'ngrok-skip-browser-warning': 'true' }
   });
   const json = await resp.json();
   if (!json.ok) throw new Error(json.error || 'Failed to load video info');
@@ -70,8 +137,8 @@ try {
 }
 
 // --- fill page title using video info ---
-const title = videoInfo.youtube_title || 'Course Video';
-document.getElementById('course-title').textContent = title;
+const dynamicTitle = videoInfo.youtube_title || 'Course Video';
+document.getElementById('course-title').textContent = dynamicTitle;
 
 // --- parse YouTube URL to id + start ---
 function parseYouTube(u) {

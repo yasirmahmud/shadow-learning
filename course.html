@@ -3,18 +3,99 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Course Questionnaire</title>
+  <title>Course Questionnaire - GatorMate</title>
   <link rel="stylesheet" href="./assets/style.css"/>
   <link rel="stylesheet" href="./styles/questionnaire-only.css">
+  <style>
+    /* ===== HEADER LAYOUT (UF Blue) ===== */
+    .site-header {
+      background-color: #0021A5; /* UF Blue */
+      color: #fff;
+      padding: 2rem 0;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .site-logo {
+      width: 90px;
+      height: auto;
+      flex-shrink: 0;
+      border-radius: 0.5rem;
+      background: #fff;
+      padding: 0.5rem;
+    }
+
+    /* ===== TITLE AREA ===== */
+    .site-titles {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      text-align: left;
+    }
+
+    .main-title {
+      font-size: 2.5rem;
+      font-weight: 800;
+      margin: 0;
+      background: linear-gradient(90deg, #ffffff, #f9a825);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      font-size: 1.2rem;
+      font-weight: 500;
+      font-style: italic;
+      color: #ffffff;
+      margin: 0.3rem 0 0.8rem;
+      letter-spacing: 0.5px;
+    }
+
+    .subheading {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #ffffff;
+      margin: 0;
+    }
+
+    /* ===== NAVIGATION ===== */
+    .site-nav {
+      text-align: center;
+      margin-top: 1rem;
+    }
+
+    .nav-link {
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+      margin: 0 1rem;
+    }
+
+    .nav-link:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
 <body data-page="questionnaire">
 <header class="site-header">
   <div class="container">
     <div class="brand">
       <img src="./images/logo.png" alt="Site Logo" class="site-logo"/>
-      <h1>Course Questionnaire</h1>
+      <div class="site-titles">
+        <h1 class="main-title">GatorMate</h1>
+        <p class="subtitle">Revolutionizing Education</p>
+        <h2 class="subheading">Course Questionnaire</h2>
+      </div>
     </div>
-    <nav class="site-nav"><a href="./index.html" class="nav-link">Home</a></nav>
+    <nav class="site-nav">
+      <a href="./index.html" class="nav-link">Home</a>
+    </nav>
   </div>
 </header>
 
@@ -30,20 +111,17 @@
 import { qs, el, saveViaVercel } from './assets/ui.js';
 
 // -------------------- CONFIG --------------------
-// Use HTTPS for remote (ngrok) backends to avoid mixed-content blocking
 const BACKEND_URL = 'https://saunciest-unethereal-clora.ngrok-free.dev';
 
 // -------------------- PARAMS --------------------
 const params = new URLSearchParams(location.search);
 const courseId = params.get('id') || 'default';
 const alertBox = qs('#alert');
-
 let questions = [];
 
 // -------------------- LOAD QUESTIONS --------------------
 async function loadQuestions() {
   try {
-    // keep local JSON loading as-is
     const res = await fetch(`./data/questions/${encodeURIComponent(courseId)}.json`, { cache: 'no-store' });
     if (!res.ok) throw new Error(`Failed to load questions (${res.status})`);
     questions = await res.json();
@@ -136,7 +214,6 @@ qs('#save').addEventListener('click', async () => {
     const result = await res.json().catch(() => ({}));
     console.log('✅ Saved to backend:', result);
 
-    // Preserve ALL original query params when redirecting
     const next = new URL('./loading.html', location.href);
     next.search = location.search || `?id=${encodeURIComponent(courseId)}`;
     window.location.href = next.toString();
