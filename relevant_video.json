@@ -1,0 +1,14 @@
+[
+  {
+    "course_id" : "thermodynamics",
+    "slide_no": 2,
+    "query": "visual explanation of first law of thermodynamics",
+    "video_title": "What is the First Law of Thermodynamics?",
+    "video_url": "https://www.youtube.com/watch?v=1OFlW8OXN64",
+    "start_time": 41,
+    "end_time": 72,
+    "reason": "This segment explains the first law of thermodynamics, relating internal energy, heat, and work, and provides an example with the explosion of a hydrogen balloon, illustrating energy transformation.",
+    "confidence": 0.95,
+    "video_link_start": "https://www.youtube.com/watch?v=1OFlW8OXN64&t=41s"
+  }
+]

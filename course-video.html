@@ -202,6 +202,148 @@ document.addEventListener('keydown', (e) => {
     try { player.playVideo(); } catch {}
   }
 });
+
+
+// === Relevant Video Timed Swap Logic ===
+(async function(){
+  async function loadRelevant() {
+    try {
+      const res = await fetch('./relevant_video.json', { cache: 'no-store' });
+      if (!res.ok) return null;
+      return await res.json();
+    } catch(e){ console.warn('relevant_video.json not found', e); return null; }
+  }
+  const relevant = await loadRelevant();
+  if (!relevant) return;
+
+  const intime = Number(relevant.intime || 0);
+  const videoUrl = String(relevant.video_url || '');
+  const startTime = Number(relevant.start_time || 0);
+  const endTime = Number(relevant.end_time || 0);
+  const segmentDuration = Math.max(0, endTime - startTime);
+
+  const yt = window.YT;
+  if (!yt || !window.player || typeof window.player.getCurrentTime !== 'function') {
+    console.warn('YT player not ready for timed swap.');
+    return;
+  }
+
+  const mainWrap = document.getElementById('wrap') || document.getElementById('player')?.parentElement;
+  const parent = mainWrap?.parentElement || document.body;
+  const secondaryWrap = document.createElement('div');
+  secondaryWrap.id = 'secondary-wrap';
+  secondaryWrap.style.display = 'none';
+  secondaryWrap.className = mainWrap?.className || 'yt-wrap yt-16x9';
+  const secondaryDiv = document.createElement('div');
+  secondaryDiv.id = 'secondary-player';
+  secondaryWrap.appendChild(secondaryDiv);
+  parent.insertBefore(secondaryWrap, (mainWrap ? mainWrap.nextSibling : null));
+
+  let primaryElapsed = 0;
+  let primaryTimerId = null;
+  let paused = false;
+  let segmentRunning = false;
+  let secondaryPlayer = null;
+  let segmentStartTs = 0;
+
+  function startPrimaryTimer(){
+    if (primaryTimerId || segmentRunning) return;
+    primaryTimerId = setInterval(()=>{
+      if (!paused) {
+        primaryElapsed += 1;
+        if (primaryElapsed >= intime && !segmentRunning) {
+          runSegment();
+        }
+      }
+    }, 1000);
+  }
+  function stopPrimaryTimer(){
+    if (primaryTimerId) { clearInterval(primaryTimerId); primaryTimerId = null; }
+  }
+
+  const oldOnStateChange = window._origOnStateChange || null;
+  function onStateChange(evt){
+    if (evt.data === yt.PlayerState.PLAYING) {
+      paused = false;
+      startPrimaryTimer();
+    } else if (evt.data === yt.PlayerState.PAUSED || evt.data === yt.PlayerState.BUFFERING) {
+      paused = true;
+    }
+    if (typeof oldOnStateChange === 'function') try { oldOnStateChange(evt); } catch(e){}
+  }
+  try {
+    if (player && player.addEventListener) {
+      player.addEventListener('onStateChange', onStateChange);
+    }
+  } catch(e){}
+
+  try {
+    const st = player.getPlayerState && player.getPlayerState();
+    if (st === yt.PlayerState.PLAYING) startPrimaryTimer();
+  } catch(e){}
+
+  function vidFromUrl(u){
+    try {
+      const url = new URL(u);
+      if (url.hostname.includes('youtu.be')) return url.pathname.replace(/^\//, '');
+      if (url.hostname.includes('youtube.com')) return url.searchParams.get('v');
+    } catch(e){}
+    return null;
+  }
+  const secondaryId = vidFromUrl(videoUrl);
+  if (!secondaryId) {
+    console.warn('Invalid video_url in relevant_video.json');
+    return;
+  }
+
+  async function runSegment(){
+    segmentRunning = true;
+    stopPrimaryTimer();
+
+    let resumeTime = 0;
+    try { resumeTime = Math.floor(player.getCurrentTime() || 0); } catch(e){}
+
+    try { player.pauseVideo(); } catch(e){}
+    if (mainWrap) mainWrap.style.display = 'none';
+
+    secondaryWrap.style.display = '';
+    if (secondaryPlayer && secondaryPlayer.destroy) {
+      try { secondaryPlayer.destroy(); } catch(e){}
+      secondaryPlayer = null;
+    }
+    secondaryPlayer = new yt.Player('secondary-player', {
+      videoId: secondaryId,
+      playerVars: { start: Math.max(0, startTime), rel: 0, modestbranding: 1, controls: 1, iv_load_policy: 3 },
+      events: {
+        onReady: (e) => {
+          try { e.target.seekTo(Math.max(0, startTime), true); } catch(e){}
+          try { e.target.playVideo(); } catch(e){}
+          startSecondaryTimer(resumeTime);
+        }
+      }
+    });
+  }
+
+  let secondaryTimerId = null;
+  function startSecondaryTimer(resumeTime){
+    let elapsed = 0;
+    if (secondaryTimerId) clearInterval(secondaryTimerId);
+    const t0 = Date.now();
+    secondaryTimerId = setInterval(()=>{
+      elapsed = Math.floor((Date.now() - t0)/1000);
+      if (elapsed >= segmentDuration) {
+        clearInterval(secondaryTimerId);
+        secondaryTimerId = null;
+        try { secondaryPlayer && secondaryPlayer.pauseVideo && secondaryPlayer.pauseVideo(); } catch(e){}
+        if (secondaryWrap) secondaryWrap.style.display = 'none';
+        if (mainWrap) mainWrap.style.display = '';
+        try { player.seekTo(resumeTime, true); player.playVideo(); } catch(e){}
+        segmentRunning = false;
+        startPrimaryTimer();
+      }
+    }, 1000);
+  }
+})();        
 </script>
 </body>
 </html>
