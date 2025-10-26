@@ -1,14 +1,15 @@
 // Timed swap to a relevant YouTube clip shown in a popup modal, then restore.
+<<<<<<< HEAD
 // - Loads data from backend /api/relevant-video (final_merged_output.json based)
+=======
+// - Picks entry from relevant_video.json matching ?id=<course_id>
+>>>>>>> parent of 24d88ac (Update relevant-swap.js)
 // - Fires ONCE per page load
 // - Handles autoplay restrictions and modal playback
 
 const courseId = new URLSearchParams(location.search).get('id') || '';
-const BACKEND_URL =
-  (typeof localStorage !== 'undefined' && localStorage.getItem('BACKEND_URL')) ||
-  'http://localhost:8787';
+const relevantUrl = './relevant_video.json';
 
-// === helper ===
 function parseYouTubeId(u) {
   try {
     const url = new URL(u);
@@ -18,9 +19,9 @@ function parseYouTubeId(u) {
   return null;
 }
 
-// === load relevant video info from backend ===
 async function chooseRelevant() {
   try {
+<<<<<<< HEAD
     const res = await fetch(`${BACKEND_URL}/api/relevant-video`, { cache: 'no-store' });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
@@ -50,6 +51,17 @@ async function chooseRelevant() {
     console.error('⚠️ Failed to load relevant_video.json from backend:', err);
     return null;
   }
+=======
+    const res = await fetch(relevantUrl, { cache: 'no-store' });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const arr = Array.isArray(data) ? data : [data];
+    let m = arr.find(x => (x?.course_id || '').toLowerCase() === courseId.toLowerCase());
+    if (!m) m = arr[0];
+    if (!m || m.intime == null || m.start_time == null || m.end_time == null || !m.video_url) return null;
+    return { intime: +m.intime, start: +m.start_time, end: +m.end_time, url: String(m.video_url) };
+  } catch { return null; }
+>>>>>>> parent of 24d88ac (Update relevant-swap.js)
 }
 
 function waitFor(fn, { interval = 150, timeout = 20000 } = {}) {
@@ -66,9 +78,9 @@ function waitFor(fn, { interval = 150, timeout = 20000 } = {}) {
 function ensureModal() {
   if (document.getElementById('rs-modal')) return document.getElementById('rs-modal');
 
-  // Inject modal styles once
+  // Style (scoped, injected once)
   if (!document.getElementById('rs-modal-style')) {
-    const css = `
+    const css =  `
 #rs-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.6);z-index:9999}
 #rs-modal .rs-panel{background:#fff;border-radius:14px;box-shadow:0 12px 28px rgba(0,0,0,.24);width:min(1100px,96vw);padding:16px 16px 20px;display:flex;flex-direction:column;gap:12px}
 #rs-modal .rs-head{display:flex;align-items:center;justify-content:space-between}
@@ -79,7 +91,8 @@ function ensureModal() {
 @media (max-width:640px){
   #rs-modal .rs-panel{padding:12px}
   #rs-modal .rs-title{font-size:16px}
-}`.trim();
+}
+`.trim();
     const style = document.createElement('style');
     style.id = 'rs-modal-style';
     style.textContent = css;
@@ -206,12 +219,13 @@ function ensureModal() {
       const modal = showModal();
       attachCloseHandler(lastResumeTime);
 
+      // make sure container exists (modal creates #secondary-player)
       const container = modal.querySelector('#secondary-player');
+      // destroy old if any
       if (secondaryPlayer && secondaryPlayer.destroy) { try { secondaryPlayer.destroy(); } catch {} secondaryPlayer = null; }
 
       secondaryPlayer = new YT.Player('secondary-player', {
-        videoId: vid,
-        width: '100%', height: '100%',
+        videoId: vid, width: '100%', height: '100%',
         playerVars: { start: Math.max(0, segStart), rel: 0, modestbranding: 1, controls: 1, iv_load_policy: 3 },
         events: {
           onReady: (e) => {
