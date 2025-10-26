@@ -44,15 +44,19 @@ function ensureModal() {
 
   // Style (scoped, injected once)
   if (!document.getElementById('rs-modal-style')) {
-    const css = `
+    const css =  `
 #rs-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.6);z-index:9999}
-#rs-modal .rs-panel{background:#fff;border-radius:14px;box-shadow:0 12px 28px rgba(0,0,0,.24);width:min(920px,92vw);padding:16px 16px 20px;display:flex;flex-direction:column;gap:12px}
+#rs-modal .rs-panel{background:#fff;border-radius:14px;box-shadow:0 12px 28px rgba(0,0,0,.24);width:min(1100px,96vw);padding:16px 16px 20px;display:flex;flex-direction:column;gap:12px}
 #rs-modal .rs-head{display:flex;align-items:center;justify-content:space-between}
 #rs-modal .rs-title{margin:0;font:600 18px/1.3 system-ui,Segoe UI,Roboto;color:#0021A5}
 #rs-modal .rs-close{appearance:none;border:0;background:transparent;font-size:22px;line-height:1;cursor:pointer;color:#444;padding:4px}
-#rs-modal .rs-player{position:relative;width:100%;aspect-ratio:16/9;border-radius:10px;overflow:hidden;background:#000}
-@media (max-width:640px){ #rs-modal .rs-panel{padding:12px} .rs-modal .rs-title{font-size:16px} }
-    `.trim();
+#rs-modal .rs-player{position:relative;width:100%;max-width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#000}
+#rs-modal .rs-player iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
+@media (max-width:640px){
+  #rs-modal .rs-panel{padding:12px}
+  #rs-modal .rs-title{font-size:16px}
+}
+`.trim();
     const style = document.createElement('style');
     style.id = 'rs-modal-style';
     style.textContent = css;
@@ -188,7 +192,7 @@ function ensureModal() {
       if (secondaryPlayer && secondaryPlayer.destroy) { try { secondaryPlayer.destroy(); } catch {} secondaryPlayer = null; }
 
       secondaryPlayer = new YT.Player('secondary-player', {
-        videoId: vid,
+        videoId: vid, width: '100%', height: '100%',
         playerVars: { start: Math.max(0, segStart), rel: 0, modestbranding: 1, controls: 1, iv_load_policy: 3 },
         events: {
           onReady: (e) => {

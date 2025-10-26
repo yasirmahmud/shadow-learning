@@ -1,4 +1,4 @@
-// Debug build: same popup behavior, plus detailed console logs.
+// Debug build of the responsive popup swapper with detailed logs.
 
 const LOG=(...a)=>console.log('[swap]',...a), WARN=(...a)=>console.warn('[swap]',...a);
 const courseId = new URLSearchParams(location.search).get('id')||'';
@@ -12,11 +12,12 @@ function ensureModal(){
   if(document.getElementById('rs-modal')) return document.getElementById('rs-modal');
   if(!document.getElementById('rs-modal-style')){
     const css=`#rs-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.6);z-index:9999}
-#rs-modal .rs-panel{background:#fff;border-radius:14px;box-shadow:0 12px 28px rgba(0,0,0,.24);width:min(920px,92vw);padding:16px 16px 20px;display:flex;flex-direction:column;gap:12px}
+#rs-modal .rs-panel{background:#fff;border-radius:14px;box-shadow:0 12px 28px rgba(0,0,0,.24);width:min(1100px,96vw);padding:16px 16px 20px;display:flex;flex-direction:column;gap:12px}
 #rs-modal .rs-head{display:flex;align-items:center;justify-content:space-between}
 #rs-modal .rs-title{margin:0;font:600 18px/1.3 system-ui,Segoe UI,Roboto;color:#0021A5}
 #rs-modal .rs-close{appearance:none;border:0;background:transparent;font-size:22px;line-height:1;cursor:pointer;color:#444;padding:4px}
-#rs-modal .rs-player{position:relative;width:100%;aspect-ratio:16/9;border-radius:10px;overflow:hidden;background:#000}`.trim();
+#rs-modal .rs-player{position:relative;width:100%;max-width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#000}
+#rs-modal .rs-player iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}`.trim();
     const style=document.createElement('style'); style.id='rs-modal-style'; style.textContent=css; document.head.appendChild(style);
   }
   const modal=document.createElement('div'); modal.id='rs-modal';
@@ -35,7 +36,7 @@ function ensureModal(){
     if(!ready) return WARN('player not ready');
     const cfg=await chooseRelevant(); LOG('cfg',cfg); if(!cfg) return;
     const { intime, start:segStart, end:segEnd, url } = cfg; const vid=parseYouTubeId(url);
-    LOG('derived',{intime,segStart,segEnd,vid});
+    LOG('derived',{intime: intime, segStart, segEnd, vid});
     if(!vid||!(segEnd>segStart)||!(intime>=0)) return WARN('invalid segment');
 
     let primaryElapsed=0, primaryTimer=null, paused=false, segmentRunning=false, segmentDone=false, secondaryPlayer=null, lastResumeTime=0;
@@ -49,6 +50,12 @@ function ensureModal(){
     function showModal(){ const m=ensureModal(); m.style.display='flex'; return m; }
     function hideModal(){ const m=document.getElementById('rs-modal'); if(m) m.style.display='none'; }
     function attachClose(resume){ const m=document.getElementById('rs-modal'), btn=m?.querySelector('.rs-close'); if(btn) btn.onclick=()=>restorePrimary(resume); const esc=(ev)=>{ if(ev.key==='Escape') restorePrimary(resume); }; document.addEventListener('keydown',esc,{once:true}); }
+
+    function fitToContainer(instance){
+      const container=document.querySelector('#rs-modal .rs-player');
+      if(!container||!instance||!instance.setSize) return;
+      try{ instance.setSize(container.clientWidth, container.clientHeight); }catch{}
+    }
 
     function restorePrimary(resume){
       LOG('restorePrimary at',resume);
@@ -69,8 +76,15 @@ function ensureModal(){
       LOG('pause main at',lastResumeTime); try{ player.pauseVideo(); }catch{}
       const modal=showModal(); attachClose(lastResumeTime);
       if(secondaryPlayer&&secondaryPlayer.destroy){ try{ secondaryPlayer.destroy(); }catch{} secondaryPlayer=null; }
+
       LOG('create secondary',vid,'start',segStart);
-      secondaryPlayer=new YT.Player('secondary-player',{ videoId:vid, playerVars:{ start:Math.max(0,segStart), rel:0, modestbranding:1, controls:1, iv_load_policy:3 }, events:{ onReady:(e)=>{ LOG('secondary onReady'); try{ e.target.seekTo(Math.max(0,segStart),true);}catch{} try{ e.target.playVideo(); }catch{} startSecondaryTimer(lastResumeTime); } } });
+      secondaryPlayer=new YT.Player('secondary-player',{
+        videoId:vid,
+        width:'100%',
+        height:'100%',
+        playerVars:{ start:Math.max(0,segStart), rel:0, modestbranding:1, controls:1, iv_load_policy:3 },
+        events:{ onReady:(e)=>{ LOG('secondary onReady'); try{ e.target.seekTo(Math.max(0,segStart),true);}catch{} try{ e.target.playVideo(); }catch{} const container=document.querySelector('#rs-modal .rs-player'); const ro=new ResizeObserver(()=>fitToContainer(secondaryPlayer)); if(container) ro.observe(container); setTimeout(()=>fitToContainer(secondaryPlayer),0); setTimeout(()=>fitToContainer(secondaryPlayer),200); startSecondaryTimer(lastResumeTime); } }
+      });
     }
   };
 
