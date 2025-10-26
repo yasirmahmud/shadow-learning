@@ -41,7 +41,6 @@ export async function saveViaVercel(payload) {
 // -------------------- Local/Remote laptop backend (ngrok-ready) --------------------
 // Use HTTPS for ngrok to avoid mixed-content issues when your site is served over HTTPS.
 export let BACKEND_URL = 'https://saunciest-unethereal-clora.ngrok-free.dev';
-// export let BACKEND_URL = 'http://localhost:8787'; // <- toggle for local dev
 
 // Optional shared secret header if your backend enforces it
 // export const BACKEND_SECRET = "some-long-random-string"; // optional
