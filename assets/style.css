@@ -65,3 +65,21 @@
   vertical-align: middle;
   display: inline-block;
 }
+
+.main-title {
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 0.25rem;
+}
+
+.subtitle {
+  font-size: 1rem;
+  font-weight: 400;
+  color: #555;
+  margin-bottom: 0.5rem;
+}
+
+.subheading {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
