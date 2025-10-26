@@ -1,0 +1,26 @@
+{
+  "course": "thermodynamics",
+  "savedAt": "2025-10-26T15:29:35.704Z",
+  "video_chat": {
+    "atSeconds": 92,
+    "videoId": "zuUDn7A5M_0",
+    "messages": [
+      {
+        "role": "assistant",
+        "content": "Do you have any questions about what you just watched?"
+      },
+      {
+        "role": "user",
+        "content": "Hi"
+      },
+      {
+        "role": "assistant",
+        "content": "Hello! How can I assist you today? Do you have any questions about thermodynamics or the lecture content?"
+      },
+      {
+        "role": "user",
+        "content": "What is conservation of energy?"
+      }
+    ]
+  }
+}
