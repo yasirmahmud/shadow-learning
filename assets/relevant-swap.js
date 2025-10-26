@@ -1,9 +1,5 @@
 // Timed swap to a relevant YouTube clip shown in a popup modal, then restore.
-<<<<<<< HEAD
-// - Loads data from backend /api/relevant-video (final_merged_output.json based)
-=======
 // - Picks entry from relevant_video.json matching ?id=<course_id>
->>>>>>> parent of 24d88ac (Update relevant-swap.js)
 // - Fires ONCE per page load
 // - Handles autoplay restrictions and modal playback
 
@@ -21,37 +17,6 @@ function parseYouTubeId(u) {
 
 async function chooseRelevant() {
   try {
-<<<<<<< HEAD
-    const res = await fetch(`${BACKEND_URL}/api/relevant-video`, { cache: 'no-store' });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const json = await res.json();
-    if (!json.ok) throw new Error(json.error || 'Invalid response');
-    
-    // Handle the new structure from final_merged_output.json
-    const arr = Array.isArray(json.data) ? json.data : [];
-    if (!arr.length) throw new Error('No relevant video entries found');
-    
-    // pick first (or later: could filter by slide number)
-    let m = arr.find(x => (x?.course_id || '').toLowerCase() === courseId.toLowerCase());
-    if (!m) m = arr[0];
-    if (!m || m.start_time == null || m.end_time == null || !m.video_url) return null;
-
-    // derive intime based on slide number for demo (you can adjust this logic)
-    const intime = m.intime != null ? +m.intime : 2;
-
-    return {
-      intime,
-      start: +m.start_time,
-      end: +m.end_time,
-      url: String(m.video_url),
-      reason: m.reason || '',
-      video_info: json.video_info || {}
-    };
-  } catch (err) {
-    console.error('⚠️ Failed to load relevant_video.json from backend:', err);
-    return null;
-  }
-=======
     const res = await fetch(relevantUrl, { cache: 'no-store' });
     if (!res.ok) return null;
     const data = await res.json();
@@ -61,7 +26,6 @@ async function chooseRelevant() {
     if (!m || m.intime == null || m.start_time == null || m.end_time == null || !m.video_url) return null;
     return { intime: +m.intime, start: +m.start_time, end: +m.end_time, url: String(m.video_url) };
   } catch { return null; }
->>>>>>> parent of 24d88ac (Update relevant-swap.js)
 }
 
 function waitFor(fn, { interval = 150, timeout = 20000 } = {}) {
