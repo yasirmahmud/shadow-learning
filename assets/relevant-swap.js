@@ -1,4 +1,4 @@
-// --- relevant-swap.js ---
+// --- relevant-swap.js (ngrok-ready) ---
 // Displays a YouTube popup ("Videos you might find helpful") at specified times
 // Uses backend /api/relevant-video -> final_merged_output.json (slide-based)
 
@@ -12,8 +12,44 @@ function parseYouTubeId(u) {
   return null;
 }
 
-// Backend endpoint
-const BACKEND_URL = 'http://localhost:8787';
+// -------------------- Backend config (HTTPS for ngrok) --------------------
+let BACKEND_URL = 'https://saunciest-unethereal-clora.ngrok-free.dev';
+// let BACKEND_URL = 'http://localhost:8787'; // toggle for local dev
+
+const NGROK_SKIP = { 'ngrok-skip-browser-warning': 'true' };
+const NO_STORE = { cache: 'no-store' };
+
+function buildBackendUrl(path) {
+  const base = BACKEND_URL.replace(/\/$/, '');
+  const hasQ = path.includes('?');
+  return `${base}${path}${hasQ ? '&' : '?'}ngrok-skip-browser-warning=true&_=${Date.now()}`;
+}
+
+// Simple fetch with timeout + content-type guard
+async function getJson(path, { timeoutMs = 10000 } = {}) {
+  const ctrl = new AbortController();
+  const to = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const res = await fetch(buildBackendUrl(path), {
+      ...NO_STORE,
+      headers: { ...NGROK_SKIP },
+      signal: ctrl.signal
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const ct = res.headers.get('content-type') || '';
+    if (!ct.includes('application/json')) {
+      // if ngrok interstitial slips through, try to parse anyway; otherwise surface text
+      try { return await res.json(); }
+      catch {
+        const txt = await res.text().catch(()=>'');
+        throw new Error(`Expected JSON, got ${ct || 'unknown'}${txt ? ' — ' + txt.slice(0, 180) : ''}`);
+      }
+    }
+    return res.json();
+  } finally {
+    clearTimeout(to);
+  }
+}
 
 // Wait for a condition
 function waitFor(fn, { interval = 150, timeout = 20000 } = {}) {
@@ -67,10 +103,8 @@ function ensureModal() {
 // Load relevant info for current course
 async function loadRelevant() {
   try {
-    const res = await fetch(`${BACKEND_URL}/api/relevant-video`, { cache: 'no-store' });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const json = await res.json();
-    if (!json.ok) throw new Error(json.error || 'Invalid response');
+    const json = await getJson('/api/relevant-video');
+    if (!json || !json.ok) throw new Error(json?.error || 'Invalid response');
 
     const arr = Array.isArray(json.data) ? json.data : [];
     if (!arr.length) throw new Error('No relevant slides found');
@@ -83,14 +117,19 @@ async function loadRelevant() {
 
 (function boot() {
   const start = async () => {
-    const ready = await waitFor(() => window.YT && window.player && typeof window.player.getPlayerState === 'function', { timeout: 20000 });
+    const ready = await waitFor(
+      () => window.YT && window.player && typeof window.player.getPlayerState === 'function',
+      { timeout: 20000 }
+    );
     if (!ready) return;
 
     const slides = await loadRelevant();
     if (!slides.length) return;
 
     // Pick the first valid slide that includes video_start, yt_video_link_start, etc.
-    const m = slides.find(s => s.video_start != null && s.yt_video_link_start && s.yt_start_time != null && s.yt_end_time != null);
+    const m = slides.find(s =>
+      s.video_start != null && s.yt_video_link_start && s.yt_start_time != null && s.yt_end_time != null
+    );
     if (!m) return;
 
     const popupAt = Number(m.video_start);
