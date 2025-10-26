@@ -1,18 +1,53 @@
 <!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>UF Courses</title>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./assets/style.css"/></head>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>UF Courses</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./assets/style.css"/>
+</head>
 <body>
-<header class="site-header"><div class="container"><div class="brand"><div class="uf-block">UF</div><h1>Courses</h1></div><nav class="site-nav"><a href="./index.html" class="nav-link active">Home</a></nav></div></header>
-<main class="container"><div id="course-grid" class="grid"></div></main>
-<footer class="site-footer"><div class="container"><small>© <span id="year"></span> University of Florida (style). Not an official UF site.</small></div></footer>
-<script type="module">
-import { qs, el } from './assets/ui.js';
-qs('#year').textContent = new Date().getFullYear();
-const grid = qs('#course-grid');
-const courses = await (await fetch('./data/courses.json',{cache:'no-store'})).json();
-courses.forEach(c=>{const card = el('a',{class:'card noimg',href:`./course.html?id=${encodeURIComponent(c.id)}`});const body = el('div',{class:'card-body'});body.append(el('h3',{class:'card-title'},c.title), el('p',{class:'card-text'},c.description), el('span',{class:'btn btn-orange btn-sm'},'Open →'));card.append(body); grid.append(card);});
-</script>
-</body></html>
+  <header class="site-header">
+    <div class="container">
+      <div class="brand">
+        <!-- replaced UF block with logo -->
+        <img src="./image/logo.png" alt="Site Logo" class="site-logo"/>
+        <h1>Courses</h1>
+      </div>
+      <nav class="site-nav">
+        <a href="./index.html" class="nav-link active">Home</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <div id="course-grid" class="grid"></div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <small>© <span id="year"></span> University of Florida (style). Not an official UF site.</small>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { qs, el } from './assets/ui.js';
+    qs('#year').textContent = new Date().getFullYear();
+    const grid = qs('#course-grid');
+    const courses = await (await fetch('./data/courses.json', { cache: 'no-store' })).json();
+    courses.forEach(c => {
+      const card = el('a', { class: 'card noimg', href: `./course.html?id=${encodeURIComponent(c.id)}` });
+      const body = el('div', { class: 'card-body' });
+      body.append(
+        el('h3', { class: 'card-title' }, c.title),
+        el('p', { class: 'card-text' }, c.description),
+        el('span', { class: 'btn btn-orange btn-sm' }, 'Open →')
+      );
+      card.append(body);
+      grid.append(card);
+    });
+  </script>
+</body>
+</html>
