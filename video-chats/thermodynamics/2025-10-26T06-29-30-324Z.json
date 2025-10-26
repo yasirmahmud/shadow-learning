@@ -1,0 +1,26 @@
+{
+  "course": "thermodynamics",
+  "savedAt": "2025-10-26T06:29:30.324Z",
+  "video_chat": {
+    "atSeconds": 1,
+    "videoId": "Kl9p5Y7fbbY",
+    "messages": [
+      {
+        "role": "assistant",
+        "content": "Do you have any questions about what you just watched?"
+      },
+      {
+        "role": "user",
+        "content": "whats in slide 6"
+      },
+      {
+        "role": "assistant",
+        "content": "The transcript provided does not include content for slide 6. Would you like to know more about the Second Law of Thermodynamics or any specific concepts related to it?"
+      },
+      {
+        "role": "user",
+        "content": "whats in slide 5"
+      }
+    ]
+  }
+}
