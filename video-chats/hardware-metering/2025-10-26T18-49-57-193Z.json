@@ -1,0 +1,18 @@
+{
+  "course": "hardware-metering",
+  "savedAt": "2025-10-26T18:49:57.193Z",
+  "video_chat": {
+    "atSeconds": 189,
+    "videoId": "zuUDn7A5M_0",
+    "messages": [
+      {
+        "role": "assistant",
+        "content": "Do you have any questions about what you just watched?"
+      },
+      {
+        "role": "user",
+        "content": "what is gauss law?"
+      }
+    ]
+  }
+}
