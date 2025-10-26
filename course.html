@@ -94,10 +94,23 @@ qs('#save').addEventListener('click', async () => {
   };
 
   try {
-    await saveViaVercel(payload);
+    const res = await fetch('http://localhost:8787/api/saveAnswers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`Failed to save answers: ${errText}`);
+    }
+
+    const result = await res.json();
+    console.log('✅ Saved locally:', result);
     window.location.href = `./course-video.html?id=${encodeURIComponent(courseId)}`;
+
   } catch (e) {
-    console.error(e);
+    console.error('❌ Error saving to local backend:', e);
     alertBox.hidden = false;
     alertBox.textContent = ('' + e.message).slice(0, 300);
     btn.disabled = false;
