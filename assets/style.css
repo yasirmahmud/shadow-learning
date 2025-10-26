@@ -60,7 +60,8 @@
 
 
 .site-logo {
-  height: 40px;
-  margin-right: 0.5rem;
+  height: 80px; /* increase from 40px to 80px */
+  margin-right: 0.75rem;
   vertical-align: middle;
+  display: inline-block;
 }
