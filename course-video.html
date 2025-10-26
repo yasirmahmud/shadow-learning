@@ -7,6 +7,8 @@
   <link rel="stylesheet" href="./assets/style.css"/>
 </head>
 <body>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js">marked.setOptions({ mangle: false, headerIds: false });</script>
+
 <header class="site-header">
   <div class="container">
     <div class="brand"><div class="uf-block">UF</div><h1 id="course-title">Course Video</h1></div>
@@ -146,9 +148,18 @@ document.addEventListener('keydown', (e) => {
 function addMsg(role, text) {
   const row = document.createElement('div');
   row.className = 'msg ' + role;
+
   const bubble = document.createElement('div');
   bubble.className = 'bubble';
-  bubble.textContent = text;
+
+  // Use marked.js to render Markdown safely
+  try {
+    bubble.innerHTML = marked.parse(text || '');
+  } catch (err) {
+    console.error('Markdown parse error:', err);
+    bubble.textContent = text || '';
+  }
+
   row.appendChild(bubble);
   thread.appendChild(row);
   thread.scrollTop = thread.scrollHeight;

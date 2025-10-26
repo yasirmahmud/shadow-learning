@@ -29,6 +29,29 @@
 .msg.ai .thumb{background:#0021A5;color:#fff}
 .msg.user .thumb{background:#FA4616;color:#fff}
 .compose{display:flex;gap:8px;margin-top:10px}.compose input{flex:1}.compose button{min-width:80px}
+.chat .bubble p {
+  margin: 0.4em 0;
+  line-height: 1.5;
+}
+.chat .bubble strong {
+  font-weight: 600;
+}
+.chat .bubble code {
+  background: rgba(255,255,255,0.15);
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-family: "Consolas", monospace;
+}
+.chat .bubble pre {
+  background: rgba(255,255,255,0.1);
+  padding: 8px;
+  border-radius: 6px;
+  overflow-x: auto;
+}
+.chat .bubble ul, .chat .bubble ol {
+  margin: 0.5em 0 0.5em 1.2em;
+}
+
 /* Questions spacing */
 .qa-form{display:grid;gap:28px}.field{padding:18px 20px;background:#fff;border:1px solid #e5e7eb;border-radius:16px;box-shadow:0 6px 18px rgba(0,0,0,.04)}.label{display:block;font-weight:700;font-size:1.05rem;line-height:1.35;margin-bottom:14px;color:var(--ink)}
 .radios,.checks{display:flex;flex-wrap:wrap;gap:14px 12px}.radio,.check{padding:10px 14px;border-radius:999px;border:1px solid #e2e8f0;background:#f8fafc;font-size:.95rem;line-height:1.2;transition:transform .06s ease,background .15s ease,border-color .15s ease}.radio:hover,.check:hover{transform:translateY(-1px);background:#f1f5f9;border-color:#d7dee7}.radio input,.check input{transform:scale(1.08)}
