@@ -1,0 +1,26 @@
+{
+  "course": "hardware-metering",
+  "savedAt": "2025-10-26T12:35:52.201Z",
+  "video_chat": {
+    "atSeconds": 13,
+    "videoId": "0UiPDA16OIk",
+    "messages": [
+      {
+        "role": "assistant",
+        "content": "Do you have any questions about what you just watched?"
+      },
+      {
+        "role": "user",
+        "content": "What is thermodynamics?"
+      },
+      {
+        "role": "assistant",
+        "content": "Thermodynamics is the branch of physics that deals with the relationships between heat, work, temperature, and energy. It focuses on the principles that govern the behavior of energy in chemical and physical processes. \nThere are four main laws of thermodynamics:\n\nZeroth Law: If two systems are each in thermal equilibrium with a third system, they are in thermal equilibrium with each other, which gives rise to the concept of temperature.\n\nFirst Law: This law is essentially a statement of the conservation of energy, stating that energy cannot be created or destroyed, only transformed from one form to another. In formula terms, it’s often expressed as ΔU = Q - W, where ΔU is the change in internal energy, Q is heat added to the system, and W is work done by the system.\n\nSecond Law: This law introduces the concept of entropy, stating that in any energy exchange, if no energy enters or leaves the system, the entropy (disorder) of the system tends to increase. Essentially, energy transformations are not 100% efficient, and some energy becomes unusable.\n\nThird Law: This law states that as the temperature of a system approaches absolute zero, the entropy of a perfect crystal approaches a constant minimum.\n\n\nThermodynamics has applications in a variety of fields, including chemistry, engineering, and environmental science, helping to understand how energy is used and transferred in different systems."
+      },
+      {
+        "role": "user",
+        "content": "Tell me about slide 4"
+      }
+    ]
+  }
+}
