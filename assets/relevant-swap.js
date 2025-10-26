@@ -13,7 +13,7 @@ function parseYouTubeId(u) {
 }
 
 // Backend endpoint
-const BACKEND_URL = 'https://saunciest-unethereal-clora.ngrok-free.dev';
+const BACKEND_URL = 'http://localhost:8787';
 
 // Wait for a condition
 function waitFor(fn, { interval = 150, timeout = 20000 } = {}) {

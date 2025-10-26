@@ -37,7 +37,7 @@ export async function saveViaVercel(payload) {
 }
 
 // --- Local laptop backend (ngrok / Cloudflare Tunnel) ---
-export const LOCAL_BACKEND = "https://saunciest-unethereal-clora.ngrok-free.dev"; // <— replace with your URL
+export const LOCAL_BACKEND = "http://localhost:8787"; // <— replace with your URL
 // export const BACKEND_SECRET = "some-long-random-string"; // optional
 
 export async function askLaptop(payload) {
