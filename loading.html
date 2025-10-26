@@ -45,25 +45,89 @@
     <p>Please wait a moment</p>
   </div>
   <script>
-    // Get course id from query params
-    const params = new URLSearchParams(location.search);
-    const courseId = params.get("id");
+  const params = new URLSearchParams(location.search);
+  const courseId = params.get("id");
 
-    // Poll backend until it's done running dummy.py
-    async function waitForBackend() {
-      try {
-        const res = await fetch("https://saunciest-unethereal-clora.ngrok-free.dev/api/check-status");
-        const data = await res.json();
-        if (data.ok && data.done) {
-          window.location.href = `./course-video.html?id=${encodeURIComponent(courseId)}`;
-        } else {
-          setTimeout(waitForBackend, 1500);
-        }
-      } catch {
-        setTimeout(waitForBackend, 2000);
-      }
+  const statusEl = document.querySelector(".loader p");
+  const start = Date.now();
+
+  if (!courseId) {
+    statusEl.textContent = "Missing course ID in URL (?id=...).";
+    throw new Error("No courseId");
+  }
+
+  async function fetchStatus(signal) {
+    // Pass the courseId to the backend so it knows what to check
+    const url = `https://saunciest-unethereal-clora.ngrok-free.dev/api/check-status?id=${encodeURIComponent(courseId)}&t=${Date.now()}`;
+    const res = await fetch(url, { mode: "cors", signal });
+
+    // Handle non-2xx early to avoid .json() throwing
+    if (!res.ok) {
+      throw new Error(`Status ${res.status}`);
     }
-    waitForBackend();
-  </script>
+    const data = await res.json();
+
+    // Normalize a few common shapes
+    const ok = (
+      data.ok === true ||
+      data.status === "ok" ||
+      data.success === true
+    );
+
+    const done = (
+      data.done === true ||
+      data.completed === true ||
+      data.isDone === true ||
+      data.status === "done" ||
+      data.state === "completed"
+    );
+
+    return { ok, done, raw: data };
+  }
+
+  async function waitForBackend() {
+    const maxMs = 120000; // stop after 2 minutes
+    let delay = 1200;     // start interval ~1.2s
+
+    while (true) {
+      // Stop if we've waited too long
+      const elapsed = Date.now() - start;
+      if (elapsed > maxMs) {
+        statusEl.textContent = "This is taking longer than expected. Please refresh or try again in a minute.";
+        break;
+      }
+
+      // Use a per-request timeout so we don't hang on slow networks
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 8000);
+
+      try {
+        const { ok, done } = await fetchStatus(controller.signal);
+
+        if (ok && done) {
+          statusEl.textContent = "Ready! Redirecting…";
+          // Keep the id on redirect
+          location.href = `./course-video.html?id=${encodeURIComponent(courseId)}`;
+          return;
+        } else {
+          statusEl.textContent = "Still processing…";
+        }
+      } catch (err) {
+        // Surface network/CORS/server issues for visibility
+        statusEl.textContent = `Checking status… (retrying)`;
+        // Optional: console for debugging
+        console.warn("Status check failed:", err);
+      } finally {
+        clearTimeout(timeout);
+      }
+
+      // Simple backoff with a cap
+      await new Promise(r => setTimeout(r, delay));
+      delay = Math.min(delay + 300, 3000);
+    }
+  }
+
+  waitForBackend();
+</script>
 </body>
 </html>
