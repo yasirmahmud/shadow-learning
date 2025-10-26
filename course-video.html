@@ -17,7 +17,7 @@
 </header>
 
 <main class="container">
-  <div id="meta" class="panel"><h2 id="title" class="panel-title"></h2><p id="desc" class="video-meta"></p></div>
+  <div id="meta" class="panel"><p id="desc" class="video-meta"></p></div>
 
   <div id="wrap" class="yt-wrap yt-16x9">
     <div id="player"></div>
@@ -43,7 +43,6 @@ import { qs, el, saveViaVercel, askLaptop } from './assets/ui.js';
 // You can switch between localhost and ngrok by commenting/uncommenting:
 const BACKEND_URL = 'https://saunciest-unethereal-clora.ngrok-free.dev';
 
-
 // Keep supporting an optional course id for your chat/save payloads
 const params = new URLSearchParams(location.search);
 const courseId = params.get('id') || 'default';
@@ -68,7 +67,6 @@ try {
 // --- fill page title/desc using video info ---
 const title = videoInfo.youtube_title || 'Course Video';
 document.getElementById('course-title').textContent = title;
-document.getElementById('title').textContent = title;
 document.getElementById('desc').textContent = ''; // no description from backend for now
 
 // --- parse YouTube URL to id + start ---
