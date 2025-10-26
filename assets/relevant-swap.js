@@ -1,8 +1,11 @@
-// --- relevant-swap.js ---
-// Displays a YouTube popup ("Videos you might find helpful") at specified times
-// Uses backend /api/relevant-video -> final_merged_output.json (slide-based)
+// Timed swap to a relevant YouTube clip shown in a popup modal, then restore.
+// - Picks entry from relevant_video.json matching ?id=<course_id>
+// - Fires ONCE per page load
+// - Handles autoplay restrictions and modal playback
 
-// Helper to extract YouTube video ID
+const courseId = new URLSearchParams(location.search).get('id') || '';
+const relevantUrl = './relevant_video.json';
+
 function parseYouTubeId(u) {
   try {
     const url = new URL(u);
@@ -12,10 +15,19 @@ function parseYouTubeId(u) {
   return null;
 }
 
-// Backend endpoint
-const BACKEND_URL = 'http://localhost:8787';
+async function chooseRelevant() {
+  try {
+    const res = await fetch(relevantUrl, { cache: 'no-store' });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const arr = Array.isArray(data) ? data : [data];
+    let m = arr.find(x => (x?.course_id || '').toLowerCase() === courseId.toLowerCase());
+    if (!m) m = arr[0];
+    if (!m || m.intime == null || m.start_time == null || m.end_time == null || !m.video_url) return null;
+    return { intime: +m.intime, start: +m.start_time, end: +m.end_time, url: String(m.video_url) };
+  } catch { return null; }
+}
 
-// Wait for a condition
 function waitFor(fn, { interval = 150, timeout = 20000 } = {}) {
   return new Promise(resolve => {
     const t0 = Date.now();
@@ -26,12 +38,13 @@ function waitFor(fn, { interval = 150, timeout = 20000 } = {}) {
   });
 }
 
-// Modal builder
+// --- Popup modal (created on demand) ---
 function ensureModal() {
   if (document.getElementById('rs-modal')) return document.getElementById('rs-modal');
 
+  // Style (scoped, injected once)
   if (!document.getElementById('rs-modal-style')) {
-    const css = `
+    const css =  `
 #rs-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.6);z-index:9999}
 #rs-modal .rs-panel{background:#fff;border-radius:14px;box-shadow:0 12px 28px rgba(0,0,0,.24);width:min(1100px,96vw);padding:16px 16px 20px;display:flex;flex-direction:column;gap:12px}
 #rs-modal .rs-head{display:flex;align-items:center;justify-content:space-between}
@@ -64,49 +77,23 @@ function ensureModal() {
   return modal;
 }
 
-// Load relevant info for current course
-async function loadRelevant() {
-  try {
-    const res = await fetch(`${BACKEND_URL}/api/relevant-video`, { cache: 'no-store' });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const json = await res.json();
-    if (!json.ok) throw new Error(json.error || 'Invalid response');
-
-    const arr = Array.isArray(json.data) ? json.data : [];
-    if (!arr.length) throw new Error('No relevant slides found');
-    return arr;
-  } catch (err) {
-    console.error('⚠️ Failed to fetch relevant video info:', err);
-    return [];
-  }
-}
-
 (function boot() {
   const start = async () => {
     const ready = await waitFor(() => window.YT && window.player && typeof window.player.getPlayerState === 'function', { timeout: 20000 });
     if (!ready) return;
 
-    const slides = await loadRelevant();
-    if (!slides.length) return;
+    const cfg = await chooseRelevant();
+    if (!cfg) return;
+    const { intime, start: segStart, end: segEnd, url } = cfg;
 
-    // Pick the first valid slide that includes video_start, yt_video_link_start, etc.
-    const m = slides.find(s => s.video_start != null && s.yt_video_link_start && s.yt_start_time != null && s.yt_end_time != null);
-    if (!m) return;
-
-    const popupAt = Number(m.video_start);
-    const segStart = Number(m.yt_start_time);
-    const segEnd = Number(m.yt_end_time);
-    const ytLink = String(m.yt_video_link_start);
-    const duration = Math.max(0, segEnd - segStart);
-    const vidId = parseYouTubeId(ytLink);
-
-    if (!vidId || !(segEnd > segStart) || !(popupAt >= 0)) return;
+    const vid = parseYouTubeId(url);
+    if (!vid || !(segEnd > segStart) || !(intime >= 0)) return;
 
     let primaryElapsed = 0;
     let primaryTimer = null;
     let paused = false;
     let segmentRunning = false;
-    let segmentDone = false;
+    let segmentDone = false; // prevent re-trigger
     let secondaryPlayer = null;
     let lastResumeTime = 0;
 
@@ -115,7 +102,7 @@ async function loadRelevant() {
       primaryTimer = setInterval(() => {
         if (!paused) {
           primaryElapsed += 1;
-          if (!segmentDone && primaryElapsed >= popupAt && !segmentRunning) {
+          if (!segmentDone && primaryElapsed >= intime && !segmentRunning) {
             runSegment();
           }
         }
@@ -132,13 +119,9 @@ async function loadRelevant() {
     try { if (player && player.addEventListener) player.addEventListener('onStateChange', onStateChange); } catch {}
     try { const st = player.getPlayerState && player.getPlayerState(); if (st === YT.PlayerState.PLAYING) startPrimaryTimer(); } catch {}
 
-    function showModal(titleText) {
+    function showModal() {
       const modal = ensureModal();
       modal.style.display = 'flex';
-      if (titleText) {
-        const t = modal.querySelector('.rs-title');
-        if (t) t.textContent = titleText;
-      }
       return modal;
     }
     function hideModal() {
@@ -162,7 +145,7 @@ async function loadRelevant() {
       try { secondaryPlayer && secondaryPlayer.destroy && secondaryPlayer.destroy(); } catch {}
       secondaryPlayer = null;
 
-      primaryElapsed = Math.min(primaryElapsed, Math.max(0, popupAt - 1));
+      primaryElapsed = Math.min(primaryElapsed, Math.max(0, intime - 1));
 
       const t = Math.max(0, resumeTime);
       let attempts = 0;
@@ -179,6 +162,7 @@ async function loadRelevant() {
     }
 
     function startSecondaryTimer(resumeTime) {
+      const duration = Math.max(0, segEnd - segStart);
       const t0 = Date.now();
       const id = setInterval(() => {
         const elapsed = Math.floor((Date.now() - t0) / 1000);
@@ -196,15 +180,16 @@ async function loadRelevant() {
       try { lastResumeTime = Math.floor(player.getCurrentTime() || 0); } catch { lastResumeTime = 0; }
       try { player.pauseVideo(); } catch {}
 
-      const modal = showModal(m.video_title || 'Videos you might find helpful');
+      const modal = showModal();
       attachCloseHandler(lastResumeTime);
 
+      // make sure container exists (modal creates #secondary-player)
       const container = modal.querySelector('#secondary-player');
+      // destroy old if any
       if (secondaryPlayer && secondaryPlayer.destroy) { try { secondaryPlayer.destroy(); } catch {} secondaryPlayer = null; }
 
       secondaryPlayer = new YT.Player('secondary-player', {
-        videoId: vidId,
-        width: '100%', height: '100%',
+        videoId: vid, width: '100%', height: '100%',
         playerVars: { start: Math.max(0, segStart), rel: 0, modestbranding: 1, controls: 1, iv_load_policy: 3 },
         events: {
           onReady: (e) => {
