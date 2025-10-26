@@ -40,7 +40,9 @@
 <script type="module">
 import { qs, el, saveViaVercel, askLaptop } from './assets/ui.js';
 
-const BACKEND_URL = 'http://localhost:8787';
+// You can switch between localhost and ngrok by commenting/uncommenting:
+const BACKEND_URL = 'https://saunciest-unethereal-clora.ngrok-free.dev';
+// const BACKEND_URL = 'http://localhost:8787';
 
 // Keep supporting an optional course id for your chat/save payloads
 const params = new URLSearchParams(location.search);
@@ -49,7 +51,10 @@ const courseId = params.get('id') || 'default';
 // --- fetch video info from backend ---
 let videoInfo;
 try {
-  const resp = await fetch(`${BACKEND_URL}/api/video-info`, { cache: 'no-store' });
+  const resp = await fetch(`${BACKEND_URL}/api/video-info`, {
+    cache: 'no-store',
+    headers: { 'ngrok-skip-browser-warning': 'true' } // <— important fix
+  });
   const json = await resp.json();
   if (!json.ok) throw new Error(json.error || 'Failed to load video info');
   videoInfo = json.video_info || {};
@@ -129,16 +134,14 @@ player = new window.YT.Player('player', {
   },
   events: {
     onReady: (e) => {
-      // expose globally + signal ready so the swapper can start reliably
       window.player = player;
       window.dispatchEvent(new Event('primary-player-ready'));
-
       if (start) try { e.target.seekTo(start, true); } catch {}
     },
     onStateChange: (e) => {
       if (e.data === window.YT.PlayerState.PAUSED) {
         try { lastTime = Math.floor(player.getCurrentTime() || 0); } catch {}
-        overlay.classList.add('show');   // pitch black
+        overlay.classList.add('show');
         chat.hidden = false;
         if (!chatStarted) { addMsg('ai', 'Do you have any questions about what you just watched?'); chatStarted = true; }
         msgInput.focus();
@@ -167,7 +170,6 @@ function addMsg(role, text) {
   const bubble = document.createElement('div');
   bubble.className = 'bubble';
 
-  // Use marked.js to render Markdown safely
   try {
     bubble.innerHTML = marked.parse(text || '');
   } catch (err) {
@@ -234,8 +236,6 @@ document.addEventListener('keydown', (e) => {
 });
 </script>
 
-
-<!-- Load the timed swapper AFTER player is created -->
 <script type="module" src="./assets/relevant-swap.js"></script>
 <script type="module" src="./assets/relevant-swap.debug.js"></script>
 </body>
