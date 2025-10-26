@@ -1,0 +1,18 @@
+{
+  "course": "thermodynamics",
+  "savedAt": "2025-10-26T06:19:33.473Z",
+  "video_chat": {
+    "atSeconds": 4,
+    "videoId": "Kl9p5Y7fbbY",
+    "messages": [
+      {
+        "role": "assistant",
+        "content": "Do you have any questions about what you just watched?"
+      },
+      {
+        "role": "user",
+        "content": "explain slide 4"
+      }
+    ]
+  }
+}
