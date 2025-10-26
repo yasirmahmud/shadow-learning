@@ -1,18 +1,19 @@
 // --- relevant-swap.js (ngrok-ready) ---
 // Displays a YouTube popup ("Videos you might find helpful") at specified times
 // Uses backend /api/relevant-video -> final_merged_output.json (slide-based)
+// Triggers using actual YouTube player time: yt = player.getCurrentTime()
 
-// Helper to extract YouTube video ID
+/* Helper to extract YouTube video ID */
 function parseYouTubeId(u) {
   try {
     const url = new URL(u);
     if (url.hostname.includes('youtu.be')) return url.pathname.replace(/^\//, '');
     if (url.hostname.includes('youtube.com')) return url.searchParams.get('v');
-  } catch {}
+  } catch (e) {}
   return null;
 }
 
-// -------------------- Backend config (HTTPS for ngrok) --------------------
+/* -------------------- Backend config (HTTPS for ngrok) -------------------- */
 let BACKEND_URL = 'https://saunciest-unethereal-clora.ngrok-free.dev';
 
 const NGROK_SKIP = { 'ngrok-skip-browser-warning': 'true' };
@@ -24,7 +25,7 @@ function buildBackendUrl(path) {
   return `${base}${path}${hasQ ? '&' : '?'}ngrok-skip-browser-warning=true&_=${Date.now()}`;
 }
 
-// Simple fetch with timeout + content-type guard
+/* Simple fetch with timeout + content-type guard */
 async function getJson(path, { timeoutMs = 10000 } = {}) {
   const ctrl = new AbortController();
   const to = setTimeout(() => ctrl.abort(), timeoutMs);
@@ -37,10 +38,10 @@ async function getJson(path, { timeoutMs = 10000 } = {}) {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const ct = res.headers.get('content-type') || '';
     if (!ct.includes('application/json')) {
-      // if ngrok interstitial slips through, try to parse anyway; otherwise surface text
-      try { return await res.json(); }
-      catch {
-        const txt = await res.text().catch(()=>'');
+      try {
+        return await res.json();
+      } catch (e) {
+        const txt = await res.text().catch(() => '');
         throw new Error(`Expected JSON, got ${ct || 'unknown'}${txt ? ' — ' + txt.slice(0, 180) : ''}`);
       }
     }
@@ -50,20 +51,30 @@ async function getJson(path, { timeoutMs = 10000 } = {}) {
   }
 }
 
-// Wait for a condition
+/* Wait for a condition */
 function waitFor(fn, { interval = 150, timeout = 20000 } = {}) {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     const t0 = Date.now();
     const id = setInterval(() => {
-      if (fn()) { clearInterval(id); resolve(true); }
-      else if (Date.now() - t0 > timeout) { clearInterval(id); resolve(false); }
+      try {
+        if (fn()) {
+          clearInterval(id);
+          resolve(true);
+          return;
+        }
+      } catch (e) {}
+      if (Date.now() - t0 > timeout) {
+        clearInterval(id);
+        resolve(false);
+      }
     }, interval);
   });
 }
 
-// Modal builder
+/* Modal builder */
 function ensureModal() {
-  if (document.getElementById('rs-modal')) return document.getElementById('rs-modal');
+  const existing = document.getElementById('rs-modal');
+  if (existing) return existing;
 
   if (!document.getElementById('rs-modal-style')) {
     const css = `
@@ -99,77 +110,134 @@ function ensureModal() {
   return modal;
 }
 
-// Load relevant info for current course
+/* Load relevant info for current course */
 async function loadRelevant() {
   try {
     const json = await getJson('/api/relevant-video');
-    if (!json || !json.ok) throw new Error(json?.error || 'Invalid response');
-
+    if (!json || !json.ok) throw new Error((json && json.error) || 'Invalid response');
     const arr = Array.isArray(json.data) ? json.data : [];
     if (!arr.length) throw new Error('No relevant slides found');
     return arr;
   } catch (err) {
+    // eslint-disable-next-line no-console
     console.error('⚠️ Failed to fetch relevant video info:', err);
     return [];
   }
 }
 
 (function boot() {
-  const start = async () => {
+  async function start() {
     const ready = await waitFor(
-      () => window.YT && window.player && typeof window.player.getPlayerState === 'function',
+      () =>
+        typeof window !== 'undefined' &&
+        window.YT &&
+        window.player &&
+        typeof window.player.getPlayerState === 'function' &&
+        typeof window.player.getCurrentTime === 'function',
       { timeout: 20000 }
     );
     if (!ready) return;
 
+    // Use the global player the page provides
+    const player = window.player;
+
     const slides = await loadRelevant();
     if (!slides.length) return;
 
-    // Pick the first valid slide that includes video_start, yt_video_link_start, etc.
-    const m = slides.find(s =>
-      s.video_start != null && s.yt_video_link_start && s.yt_start_time != null && s.yt_end_time != null
+    // Pick the first valid slide
+    const m = slides.find(
+      (s) =>
+        s &&
+        s.video_start != null &&
+        s.yt_video_link_start &&
+        s.yt_start_time != null &&
+        s.yt_end_time != null
     );
     if (!m) return;
 
-    const popupAt = Number(m.video_start);
-    const segStart = Number(m.yt_start_time);
-    const segEnd = Number(m.yt_end_time);
+    // --- Core timing values (all numbers) ---
+    const popupAt = Number(m.video_start); // when to pop, in *primary* video seconds
+    const segStart = Number(m.yt_start_time); // secondary segment start
+    const segEnd = Number(m.yt_end_time); // secondary segment end
     const ytLink = String(m.yt_video_link_start);
-    const duration = Math.max(0, segEnd - segStart);
+    const duration = Math.max(0, segEnd - segStart); // secondary clip duration
     const vidId = parseYouTubeId(ytLink);
 
     if (!vidId || !(segEnd > segStart) || !(popupAt >= 0)) return;
 
-    let primaryElapsed = 0;
-    let primaryTimer = null;
-    let paused = false;
-    let segmentRunning = false;
-    let segmentDone = false;
+    // --- State ---
+    const EPS = 0.25;
+    let popupTriggered = false; // ensures we only show once
+    let watchingPrimary = true;
     let secondaryPlayer = null;
-    let lastResumeTime = 0;
+    let rafId = null;
 
-    function startPrimaryTimer() {
-      if (primaryTimer || segmentRunning) return;
-      primaryTimer = setInterval(() => {
-        if (!paused) {
-          primaryElapsed += 1;
-          if (!segmentDone && primaryElapsed >= popupAt && !segmentRunning) {
-            runSegment();
+    // Poll actual YT time from the primary player; when yt >= popupAt, trigger popup.
+    function tick() {
+      try {
+        const st =
+          (typeof player.getPlayerState === 'function' && player.getPlayerState()) || null;
+        const yt =
+          (typeof player.getCurrentTime === 'function' && player.getCurrentTime()) || 0;
+
+        if (watchingPrimary && !popupTriggered) {
+          if (
+            st === window.YT.PlayerState.PLAYING ||
+            st === window.YT.PlayerState.BUFFERING ||
+            st === window.YT.PlayerState.PAUSED
+          ) {
+            if (yt + EPS >= popupAt) {
+              popupTriggered = true;
+              runSegment(yt);
+              return; // runSegment will manage the flow
+            }
           }
         }
-      }, 1000);
+      } catch (e) {}
+
+      rafId = window.requestAnimationFrame(tick);
     }
-    function stopPrimaryTimer() {
-      if (primaryTimer) { clearInterval(primaryTimer); primaryTimer = null; }
+
+    function startTicking() {
+      if (!rafId) rafId = window.requestAnimationFrame(tick);
+    }
+    function stopTicking() {
+      if (rafId) {
+        window.cancelAnimationFrame(rafId);
+        rafId = null;
+      }
     }
 
     function onStateChange(e) {
-      if (e.data === YT.PlayerState.PLAYING) { paused = false; startPrimaryTimer(); }
-      else if (e.data === YT.PlayerState.PAUSED || e.data === YT.PlayerState.BUFFERING) { paused = true; }
+      // Keep ticking so we can catch resume/time progress naturally
+      if (!watchingPrimary) return;
+      if (
+        e.data === window.YT.PlayerState.PLAYING ||
+        e.data === window.YT.PlayerState.BUFFERING ||
+        e.data === window.YT.PlayerState.PAUSED
+      ) {
+        startTicking();
+      }
     }
-    try { if (player && player.addEventListener) player.addEventListener('onStateChange', onStateChange); } catch {}
-    try { const st = player.getPlayerState && player.getPlayerState(); if (st === YT.PlayerState.PLAYING) startPrimaryTimer(); } catch {}
 
+    try {
+      if (player && typeof player.addEventListener === 'function') {
+        player.addEventListener('onStateChange', onStateChange);
+      }
+    } catch (e) {}
+
+    try {
+      const st = player.getPlayerState && player.getPlayerState();
+      if (
+        st === window.YT.PlayerState.PLAYING ||
+        st === window.YT.PlayerState.BUFFERING ||
+        st === window.YT.PlayerState.PAUSED
+      ) {
+        startTicking();
+      }
+    } catch (e) {}
+
+    // --- Modal helpers ---
     function showModal(titleText) {
       const modal = ensureModal();
       modal.style.display = 'flex';
@@ -183,78 +251,134 @@ async function loadRelevant() {
       const modal = document.getElementById('rs-modal');
       if (modal) modal.style.display = 'none';
     }
-
     function attachCloseHandler(resumeTime) {
       const modal = document.getElementById('rs-modal');
-      const btn = modal?.querySelector('.rs-close');
+      const btn = modal ? modal.querySelector('.rs-close') : null;
       if (btn) btn.onclick = () => restorePrimary(resumeTime);
-      const escHandler = (ev) => { if (ev.key === 'Escape') restorePrimary(resumeTime); };
+      function escHandler(ev) {
+        if (ev.key === 'Escape') restorePrimary(resumeTime);
+      }
       document.addEventListener('keydown', escHandler, { once: true });
     }
 
+    // Resume the primary player at resumeTime and continue ticking.
     function restorePrimary(resumeTime) {
-      segmentDone = true;
       hideModal();
 
-      try { secondaryPlayer && secondaryPlayer.stopVideo && secondaryPlayer.stopVideo(); } catch {}
-      try { secondaryPlayer && secondaryPlayer.destroy && secondaryPlayer.destroy(); } catch {}
+      try {
+        if (secondaryPlayer && typeof secondaryPlayer.stopVideo === 'function') {
+          secondaryPlayer.stopVideo();
+        }
+      } catch (e) {}
+      try {
+        if (secondaryPlayer && typeof secondaryPlayer.destroy === 'function') {
+          secondaryPlayer.destroy();
+        }
+      } catch (e) {}
       secondaryPlayer = null;
 
-      primaryElapsed = Math.min(primaryElapsed, Math.max(0, popupAt - 1));
+      watchingPrimary = true;
+      stopTicking();
 
-      const t = Math.max(0, resumeTime);
+      const t = Math.max(0, Math.floor(resumeTime));
       let attempts = 0;
-      const retry = setInterval(() => {
-        attempts++;
-        try { player.seekTo(t, true); } catch {}
-        try { player.playVideo(); } catch {}
+      const retry = window.setInterval(() => {
+        attempts += 1;
+        try {
+          if (typeof player.seekTo === 'function') player.seekTo(t, true);
+        } catch (e) {}
+        try {
+          if (typeof player.playVideo === 'function') player.playVideo();
+        } catch (e) {}
+
         try {
           const st = player.getPlayerState && player.getPlayerState();
-          if (st === YT.PlayerState.PLAYING) { clearInterval(retry); startPrimaryTimer(); }
-        } catch {}
-        if (attempts >= 20) { clearInterval(retry); }
+          if (st === window.YT.PlayerState.PLAYING) {
+            clearInterval(retry);
+            startTicking();
+          }
+        } catch (e) {}
+
+        if (attempts >= 20) {
+          clearInterval(retry);
+          startTicking();
+        }
       }, 300);
     }
 
-    function startSecondaryTimer(resumeTime) {
-      const t0 = Date.now();
-      const id = setInterval(() => {
-        const elapsed = Math.floor((Date.now() - t0) / 1000);
-        if (elapsed >= duration) {
-          clearInterval(id);
-          restorePrimary(resumeTime);
-        }
-      }, 250);
-    }
+    // Play the secondary clip for `duration` seconds, then close and resume.
+    function runSegment(currentPrimaryTime) {
+      watchingPrimary = false;
+      stopTicking();
 
-    function runSegment() {
-      segmentRunning = true;
-      stopPrimaryTimer();
-
-      try { lastResumeTime = Math.floor(player.getCurrentTime() || 0); } catch { lastResumeTime = 0; }
-      try { player.pauseVideo(); } catch {}
+      try {
+        if (typeof player.pauseVideo === 'function') player.pauseVideo();
+      } catch (e) {}
 
       const modal = showModal(m.video_title || 'Videos you might find helpful');
-      attachCloseHandler(lastResumeTime);
+      attachCloseHandler(currentPrimaryTime);
 
       const container = modal.querySelector('#secondary-player');
-      if (secondaryPlayer && secondaryPlayer.destroy) { try { secondaryPlayer.destroy(); } catch {} secondaryPlayer = null; }
+      if (container) {
+        // clear previous iframe if any (safety)
+        container.innerHTML = '';
+      }
 
-      secondaryPlayer = new YT.Player('secondary-player', {
+      let segRaf = null;
+      let startWall = null;
+
+      function startSecondaryWallTimer(resumeAt) {
+        function segTick(now) {
+          if (startWall == null) startWall = now;
+          const elapsed = (now - startWall) / 1000; // seconds
+          if (elapsed + EPS >= duration) {
+            if (segRaf) window.cancelAnimationFrame(segRaf);
+            segRaf = null;
+            restorePrimary(resumeAt);
+            return;
+          }
+          segRaf = window.requestAnimationFrame(segTick);
+        }
+        segRaf = window.requestAnimationFrame(segTick);
+      }
+
+      secondaryPlayer = new window.YT.Player('secondary-player', {
         videoId: vidId,
-        width: '100%', height: '100%',
-        playerVars: { start: Math.max(0, segStart), rel: 0, modestbranding: 1, controls: 1, iv_load_policy: 3 },
+        width: '100%',
+        height: '100%',
+        playerVars: {
+          start: Math.max(0, segStart),
+          rel: 0,
+          modestbranding: 1,
+          controls: 1,
+          iv_load_policy: 3
+        },
         events: {
           onReady: (e) => {
-            try { e.target.seekTo(Math.max(0, segStart), true); } catch {}
-            try { e.target.playVideo(); } catch {}
-            startSecondaryTimer(lastResumeTime);
+            try {
+              if (e && e.target && typeof e.target.seekTo === 'function') {
+                e.target.seekTo(Math.max(0, segStart), true);
+              }
+            } catch (err) {}
+            try {
+              if (e && e.target && typeof e.target.playVideo === 'function') {
+                e.target.playVideo();
+              }
+            } catch (err) {}
+            startSecondaryWallTimer(currentPrimaryTime);
           }
         }
       });
     }
-  };
+  }
 
-  if (window.YT && window.player) start();
-  else window.addEventListener('primary-player-ready', start, { once: true });
+  if (typeof window !== 'undefined' && window.YT && window.player) {
+    // Primary player already available
+    start();
+  } else {
+    // Wait for host page to signal readiness
+    window.addEventListener('primary-player-ready', () => {
+      start();
+    }, { once: true });
+  }
 })();
