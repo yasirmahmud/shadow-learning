@@ -1,8 +1,7 @@
 // Timed swap to a relevant YouTube clip shown in a popup modal, then restore.
-// - Loads relevant_video.json via backend API
-// - Picks entry matching ?id=<course_id>
+// - Loads data from backend /api/relevant-video (final_merged_output.json based)
 // - Fires ONCE per page load
-// - Handles autoplay restrictions with gentle retries
+// - Handles autoplay restrictions and modal playback
 
 const courseId = new URLSearchParams(location.search).get('id') || '';
 const BACKEND_URL =
@@ -25,12 +24,28 @@ async function chooseRelevant() {
     const res = await fetch(`${BACKEND_URL}/api/relevant-video`, { cache: 'no-store' });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
-    if (!json.ok) throw new Error(json.error || 'No relevant video data');
-    const arr = Array.isArray(json.data) ? json.data : [json.data];
+    if (!json.ok) throw new Error(json.error || 'Invalid response');
+    
+    // Handle the new structure from final_merged_output.json
+    const arr = Array.isArray(json.data) ? json.data : [];
+    if (!arr.length) throw new Error('No relevant video entries found');
+    
+    // pick first (or later: could filter by slide number)
     let m = arr.find(x => (x?.course_id || '').toLowerCase() === courseId.toLowerCase());
     if (!m) m = arr[0];
-    if (!m || m.intime == null || m.start_time == null || m.end_time == null || !m.video_url) return null;
-    return { intime: +m.intime, start: +m.start_time, end: +m.end_time, url: String(m.video_url) };
+    if (!m || m.start_time == null || m.end_time == null || !m.video_url) return null;
+
+    // derive intime based on slide number for demo (you can adjust this logic)
+    const intime = m.intime != null ? +m.intime : 2;
+
+    return {
+      intime,
+      start: +m.start_time,
+      end: +m.end_time,
+      url: String(m.video_url),
+      reason: m.reason || '',
+      video_info: json.video_info || {}
+    };
   } catch (err) {
     console.error('⚠️ Failed to load relevant_video.json from backend:', err);
     return null;
@@ -141,23 +156,20 @@ function ensureModal() {
       const modal = document.getElementById('rs-modal');
       const btn = modal?.querySelector('.rs-close');
       if (btn) btn.onclick = () => restorePrimary(resumeTime);
-      // Allow Esc to close
-      const escHandler = (ev) => { if (ev.key === 'Escape') { restorePrimary(resumeTime); } };
+      const escHandler = (ev) => { if (ev.key === 'Escape') restorePrimary(resumeTime); };
       document.addEventListener('keydown', escHandler, { once: true });
     }
 
     function restorePrimary(resumeTime) {
-      segmentDone = true; // ensure we never re-fire
+      segmentDone = true;
       hideModal();
 
       try { secondaryPlayer && secondaryPlayer.stopVideo && secondaryPlayer.stopVideo(); } catch {}
       try { secondaryPlayer && secondaryPlayer.destroy && secondaryPlayer.destroy(); } catch {}
       secondaryPlayer = null;
 
-      // cap elapsed below threshold to avoid >= checks elsewhere
       primaryElapsed = Math.min(primaryElapsed, Math.max(0, intime - 1));
 
-      // gentle retry to resume (for autoplay restrictions)
       const t = Math.max(0, resumeTime);
       let attempts = 0;
       const retry = setInterval(() => {
@@ -168,7 +180,7 @@ function ensureModal() {
           const st = player.getPlayerState && player.getPlayerState();
           if (st === YT.PlayerState.PLAYING) { clearInterval(retry); startPrimaryTimer(); }
         } catch {}
-        if (attempts >= 20) { clearInterval(retry); } // ~6s max
+        if (attempts >= 20) { clearInterval(retry); }
       }, 300);
     }
 
