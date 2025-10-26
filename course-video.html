@@ -40,19 +40,31 @@
 <script type="module">
 import { qs, el, saveViaVercel, askLaptop } from './assets/ui.js';
 
-// --- load course + url ---
-const params = new URLSearchParams(location.search);
-const courseId = params.get('id');
+const BACKEND_URL = 'http://localhost:8787';
 
-const courses = await (await fetch('./data/courses.json', { cache: 'no-store' })).json();
-const course = courses.find(c => c.id === courseId);
-if (!course) {
-  document.getElementById('wrap').innerHTML = '<div style="color:#fff;padding:24px">Course not found.</div>';
-  throw new Error('Course not found');
+// Keep supporting an optional course id for your chat/save payloads
+const params = new URLSearchParams(location.search);
+const courseId = params.get('id') || 'default';
+
+// --- fetch video info from backend ---
+let videoInfo;
+try {
+  const resp = await fetch(`${BACKEND_URL}/api/video-info`, { cache: 'no-store' });
+  const json = await resp.json();
+  if (!json.ok) throw new Error(json.error || 'Failed to load video info');
+  videoInfo = json.video_info || {};
+} catch (err) {
+  console.error(err);
+  document.getElementById('wrap').innerHTML =
+    '<div style="color:#fff;padding:24px">Could not load video info from backend.</div>';
+  throw err;
 }
-document.getElementById('course-title').textContent = course.title;
-document.getElementById('title').textContent = course.title;
-document.getElementById('desc').textContent = course.description || '';
+
+// --- fill page title/desc using video info ---
+const title = videoInfo.youtube_title || 'Course Video';
+document.getElementById('course-title').textContent = title;
+document.getElementById('title').textContent = title;
+document.getElementById('desc').textContent = ''; // no description from backend for now
 
 // --- parse YouTube URL to id + start ---
 function parseYouTube(u) {
@@ -72,14 +84,17 @@ function parseYouTube(u) {
   }
 }
 
-const v = course.video || {};
-if (!(v.type === 'youtube' && v.url)) {
-  document.getElementById('wrap').innerHTML = '<div style="color:#fff;padding:24px">No YouTube URL set for this course.</div>';
-  throw new Error('No YouTube URL set');
+const youtubeUrl = videoInfo.youtube_video_url;
+if (!youtubeUrl) {
+  document.getElementById('wrap').innerHTML =
+    '<div style="color:#fff;padding:24px">No YouTube URL available from backend.</div>';
+  throw new Error('Missing YouTube URL');
 }
-const { id: videoId, start } = parseYouTube(v.url);
+
+const { id: videoId, start } = parseYouTube(youtubeUrl);
 if (!videoId) {
-  document.getElementById('wrap').innerHTML = '<div style="color:#fff;padding:24px">Invalid YouTube URL.</div>';
+  document.getElementById('wrap').innerHTML =
+    '<div style="color:#fff;padding:24px">Invalid YouTube URL from backend.</div>';
   throw new Error('Invalid YouTube URL');
 }
 
@@ -218,6 +233,7 @@ document.addEventListener('keydown', (e) => {
   }
 });
 </script>
+
 
 <!-- Load the timed swapper AFTER player is created -->
 <script type="module" src="./assets/relevant-swap.js"></script>

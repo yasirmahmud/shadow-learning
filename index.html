@@ -8,11 +8,50 @@
 <header class="site-header"><div class="container"><div class="brand"><div class="uf-block">UF</div><h1>Courses</h1></div><nav class="site-nav"><a href="./index.html" class="nav-link active">Home</a></nav></div></header>
 <main class="container"><div id="course-grid" class="grid"></div></main>
 <footer class="site-footer"><div class="container"><small>© <span id="year"></span> University of Florida (style). Not an official UF site.</small></div></footer>
+
 <script type="module">
 import { qs, el } from './assets/ui.js';
+
+const BACKEND_URL = 'http://localhost:8787';
+
 qs('#year').textContent = new Date().getFullYear();
 const grid = qs('#course-grid');
-const courses = await (await fetch('./data/courses.json',{cache:'no-store'})).json();
-courses.forEach(c=>{const card = el('a',{class:'card noimg',href:`./course.html?id=${encodeURIComponent(c.id)}`});const body = el('div',{class:'card-body'});body.append(el('h3',{class:'card-title'},c.title), el('p',{class:'card-text'},c.description), el('span',{class:'btn btn-orange btn-sm'},'Open →'));card.append(body); grid.append(card);});
+
+// Pull current course video info from backend (single card)
+let videoInfo;
+try {
+  const resp = await fetch(`${BACKEND_URL}/api/video-info`, { cache: 'no-store' });
+  const json = await resp.json();
+  if (!json.ok) throw new Error(json.error || 'Failed to load video info');
+  videoInfo = json.video_info || {};
+} catch (err) {
+  console.error(err);
+  const card = el('div', { class: 'card noimg' });
+  const body = el('div', { class: 'card-body' });
+  body.append(
+    el('h3', { class: 'card-title' }, 'Course Video'),
+    el('p', { class: 'card-text' }, 'Could not load video info from backend.'),
+  );
+  card.append(body);
+  grid.append(card);
+  throw err;
+}
+
+const title = videoInfo.youtube_title || 'Course Video';
+const desc = 'Open the current course lecture video';
+const card = el('a', { class: 'card noimg', href: `./course-video.html` });
+const body = el('div', { class: 'card-body' });
+
+body.append(
+  el('h3', { class: 'card-title' }, title),
+  el('p', { class: 'card-text' }, desc),
+  el('span', { class: 'btn btn-orange btn-sm' }, 'Open →')
+);
+
+card.append(body);
+grid.append(card);
 </script>
+
+
+
 </body></html>
