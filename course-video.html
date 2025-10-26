@@ -7,7 +7,9 @@
   <link rel="stylesheet" href="./assets/style.css"/>
 </head>
 <body>
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js">marked.setOptions({ mangle: false, headerIds: false });</script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js">
+  marked.setOptions({ mangle: false, headerIds: false });
+</script>
 
 <header class="site-header">
   <div class="container">
@@ -21,7 +23,6 @@
 </header>
 
 <main class="container">
-  <div id="meta" class="panel"><p id="desc" class="video-meta"></p></div>
 
   <div id="wrap" class="yt-wrap yt-16x9">
     <div id="player"></div>
@@ -68,10 +69,9 @@ try {
   throw err;
 }
 
-// --- fill page title/desc using video info ---
+// --- fill page title using video info ---
 const title = videoInfo.youtube_title || 'Course Video';
 document.getElementById('course-title').textContent = title;
-document.getElementById('desc').textContent = ''; // no description from backend for now
 
 // --- parse YouTube URL to id + start ---
 function parseYouTube(u) {
