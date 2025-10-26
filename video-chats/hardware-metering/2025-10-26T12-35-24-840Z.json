@@ -1,0 +1,18 @@
+{
+  "course": "hardware-metering",
+  "savedAt": "2025-10-26T12:35:24.840Z",
+  "video_chat": {
+    "atSeconds": 13,
+    "videoId": "0UiPDA16OIk",
+    "messages": [
+      {
+        "role": "assistant",
+        "content": "Do you have any questions about what you just watched?"
+      },
+      {
+        "role": "user",
+        "content": "What is thermodynamics?"
+      }
+    ]
+  }
+}
