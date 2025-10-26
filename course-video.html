@@ -172,37 +172,53 @@ function collectTranscript() {
   }));
 }
 
-// Submit to backend + save to GitHub
+// Submit to backend and get reply
 compose.addEventListener('submit', async (ev) => {
   ev.preventDefault();
   const text = msgInput.value.trim();
   if (!text) return;
+
+  // Add user's message to chat
   addMsg('user', text);
   msgInput.value = '';
+  msgInput.disabled = true;
+  compose.querySelector('button').disabled = true;
+
+  // Show "thinking" bubble
+  const thinkingId = `thinking-${Date.now()}`;
+  const thinkingBubble = document.createElement('div');
+  thinkingBubble.className = 'msg ai';
+  thinkingBubble.id = thinkingId;
+  thinkingBubble.innerHTML = `<div class="bubble"><em>Assistant is thinking...</em></div>`;
+  thread.appendChild(thinkingBubble);
+  thread.scrollTop = thread.scrollHeight;
 
   try {
-    await saveViaVercel({
-      course: courseId,
-      savedAt: new Date().toISOString(),
-      video_chat: { atSeconds: lastTime, videoId, messages: collectTranscript() }
-    });
-  } catch (e) { console.error(e); }
-
-  try {
+    // 🔥 Only talk to your local backend now
     const response = await askLaptop({
       courseId,
       atSeconds: lastTime,
       messages: collectTranscript().map(m => ({
-        role: m.role === 'assistant' ? 'assistant' : 'user',
-        content: m.content
+        role: m.classList.contains('ai') ? 'assistant' : 'user',
+        content: m.textContent.trim()
       }))
     });
+
+    // Remove the "thinking" bubble and show real reply
+    document.getElementById(thinkingId)?.remove();
     addMsg('ai', response.reply || 'No response.');
   } catch (err) {
-    console.error(err);
-    addMsg('ai', 'The assistant is unavailable right now. Please try again in a moment.');
+    console.error('Chat error:', err);
+    document.getElementById(thinkingId)?.remove();
+    addMsg('ai', '⚠️ The assistant is unavailable right now. Please try again.');
+  } finally {
+    // Re-enable input
+    msgInput.disabled = false;
+    compose.querySelector('button').disabled = false;
+    msgInput.focus();
   }
 });
+
 
 // Exit chat
 exitBtn.addEventListener('click', () => {
