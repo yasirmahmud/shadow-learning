@@ -40,8 +40,7 @@
     // -------------------- CONFIG --------------------
     // Use HTTPS for remote (ngrok) backends to avoid mixed-content blocking
     const BACKEND_URL = 'https://saunciest-unethereal-clora.ngrok-free.dev';
-    // const BACKEND_URL = 'http://localhost:8787'; // toggle for local dev
-
+  
     // -------------------- PARAMS --------------------
     const params = new URLSearchParams(location.search);
     const courseId = params.get('id') || 'default';
