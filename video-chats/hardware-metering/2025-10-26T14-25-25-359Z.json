@@ -1,0 +1,26 @@
+{
+  "course": "hardware-metering",
+  "savedAt": "2025-10-26T14:25:25.359Z",
+  "video_chat": {
+    "atSeconds": 15,
+    "videoId": "zuUDn7A5M_0",
+    "messages": [
+      {
+        "role": "assistant",
+        "content": "Do you have any questions about what you just watched?"
+      },
+      {
+        "role": "user",
+        "content": "what's explained in slide 3"
+      },
+      {
+        "role": "assistant",
+        "content": "I don't have access to the specific content of slide 3 since the transcript isn’t available. However, if you can describe what the slide covers or ask about its topic, I'd be happy to help! Alternatively, I can provide general information on hardware metering if that would be useful."
+      },
+      {
+        "role": "user",
+        "content": "tell me what you know about hardwaring metering about your context"
+      }
+    ]
+  }
+}
