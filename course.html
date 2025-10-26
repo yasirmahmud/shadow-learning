@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Course Questionnaire</title>
   <link rel="stylesheet" href="./assets/style.css"/>
-<link rel="stylesheet" href="./styles/questionnaire-only.css">
+  <link rel="stylesheet" href="./styles/questionnaire-only.css">
 </head>
 <body data-page="questionnaire">
 <header class="site-header">
@@ -26,41 +26,62 @@
 <script type="module">
 import { qs, el, saveViaVercel } from './assets/ui.js';
 
+// -------------------- CONFIG --------------------
+// Use HTTPS for remote (ngrok) backends to avoid mixed-content blocking
+const BACKEND_URL = 'https://saunciest-unethereal-clora.ngrok-free.dev';
+// const BACKEND_URL = 'http://localhost:8787'; // toggle for local dev
+
+// -------------------- PARAMS --------------------
 const params = new URLSearchParams(location.search);
-const courseId = params.get('id');
+const courseId = params.get('id') || 'default';
 const alertBox = qs('#alert');
 
 let questions = [];
 
-// Load questions dynamically
+// -------------------- LOAD QUESTIONS --------------------
 async function loadQuestions() {
-  const res = await fetch(`./data/questions/${courseId}.json`, { cache: 'no-store' });
-  questions = await res.json();
-  const container = qs('#question-list');
-  container.innerHTML = '';
+  try {
+    // keep local JSON loading as-is
+    const res = await fetch(`./data/questions/${encodeURIComponent(courseId)}.json`, { cache: 'no-store' });
+    if (!res.ok) throw new Error(`Failed to load questions (${res.status})`);
+    questions = await res.json();
 
-  questions.forEach((q, i) => {
-    const fieldId = `q_${i}`;
-    const block = el('div', { class: 'question-card' });
-    const label = el('div', { class: 'question-text' }, q.prompt || q.Question);
-    block.append(label);
+    const container = qs('#question-list');
+    container.innerHTML = '';
 
-    if (q.type === 'radio' || q.Type === 'MCQ') {
-      const opts = q.options || q['Answer Options'] || [];
-      const optWrap = el('div', { id: fieldId, class: 'options-group' });
-      opts.forEach(opt => {
-        const lab = el('label', { class: 'answer-option' });
-        const input = el('input', { type: 'radio', name: fieldId, value: opt });
-        lab.append(input, ' ', opt);
-        optWrap.append(lab);
-      });
-      block.append(optWrap);
-    } else {
-      const input = el('textarea', { id: fieldId, rows: 3, class: 'input-text', placeholder: 'Type your answer here...' });
-      block.append(input);
-    }
-    container.append(block);
-  });
+    questions.forEach((q, i) => {
+      const fieldId = `q_${i}`;
+      const block = el('div', { class: 'question-card' });
+      const label = el('div', { class: 'question-text' }, q.prompt || q.Question);
+      block.append(label);
+
+      if (q.type === 'radio' || q.Type === 'MCQ') {
+        const opts = q.options || q['Answer Options'] || [];
+        const optWrap = el('div', { id: fieldId, class: 'options-group' });
+        opts.forEach(opt => {
+          const lab = el('label', { class: 'answer-option' });
+          const input = el('input', { type: 'radio', name: fieldId, value: opt });
+          lab.append(input, ' ', opt);
+          optWrap.append(lab);
+        });
+        block.append(optWrap);
+      } else {
+        const input = el('textarea', {
+          id: fieldId,
+          rows: 3,
+          class: 'input-text',
+          placeholder: 'Type your answer here...'
+        });
+        block.append(input);
+      }
+
+      container.append(block);
+    });
+  } catch (e) {
+    console.error(e);
+    alertBox.hidden = false;
+    alertBox.textContent = ('Failed to load questions: ' + e.message).slice(0, 300);
+  }
 }
 
 function valueOf(input) {
@@ -71,7 +92,7 @@ function valueOf(input) {
   return '';
 }
 
-// Save simplified format
+// -------------------- SAVE --------------------
 qs('#save').addEventListener('click', async () => {
   const btn = qs('#save');
   btn.disabled = true;
@@ -94,23 +115,32 @@ qs('#save').addEventListener('click', async () => {
   };
 
   try {
-    const res = await fetch('http://localhost:8787/api/saveAnswers', {
+    const url = `${BACKEND_URL}/api/saveAnswers?ngrok-skip-browser-warning=true&_=${Date.now()}`;
+    const res = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      cache: 'no-store',
+      headers: {
+        'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true'
+      },
+      body: JSON.stringify(payload)
     });
 
     if (!res.ok) {
-      const errText = await res.text();
-      throw new Error(`Failed to save answers: ${errText}`);
+      const errText = await res.text().catch(() => '');
+      throw new Error(`Failed to save answers (${res.status}): ${errText}`);
     }
 
-    const result = await res.json();
-    console.log('✅ Saved locally:', result);
-    window.location.href = `./loading.html?id=${encodeURIComponent(courseId)}`;
+    const result = await res.json().catch(() => ({}));
+    console.log('✅ Saved to backend:', result);
+
+    // Preserve ALL original query params when redirecting
+    const next = new URL('./loading.html', location.href);
+    next.search = location.search || `?id=${encodeURIComponent(courseId)}`;
+    window.location.href = next.toString();
 
   } catch (e) {
-    console.error('❌ Error saving to local backend:', e);
+    console.error('❌ Error saving to backend:', e);
     alertBox.hidden = false;
     alertBox.textContent = ('' + e.message).slice(0, 300);
     btn.disabled = false;
